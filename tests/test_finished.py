@@ -235,6 +235,16 @@ class Agents(unittest.TestCase):
         finally:
             os.remove(fh.name)
 
+    def test_shell_call_counts_as_notified(self):
+        import agents
+        yes = ['finished -a Claude "Done"', 'cd x && finished "ok"', "finished", 'finished.cmd -l sr "Gotovo"']
+        no = ["finished register all", "finished set voice deep", "finished voices sr", "unfinished work",
+              "git commit -m 'finished docs'x"]
+        for c in yes:
+            self.assertTrue(agents.SHELL_CALL.search(c), c)
+        for c in no:
+            self.assertFalse(agents.SHELL_CALL.search(c), c)
+
 
 if __name__ == "__main__":
     unittest.main()

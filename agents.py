@@ -362,6 +362,12 @@ def first_sentence(text):
     return ""
 
 
+# `finished "message"` run from a shell tool (the rule's fallback), not a settings command
+SHELL_CALL = re.compile(
+    r"(?:^|[\s;&|(])finished(?:\.cmd)?(?=\s|$)(?!\s+(?:register|unregister|set|voices|preview|languages|"
+    r"detect|phrases|config|setup|mcp|hook|help|--version|-h|--help)\b)")
+
+
 def claude_turn(path, tail=4_000_000):
     """(last assistant text, whether notify_finished was called) for the turn that just ended."""
     if not path or not os.path.exists(path):
@@ -380,7 +386,10 @@ def claude_turn(path, tail=4_000_000):
         content = (obj.get("message") or {}).get("content")
         if obj.get("type") == "assistant" and isinstance(content, list):
             for block in content:
-                if block.get("type") == "tool_use" and "notify_finished" in block.get("name", ""):
+                if block.get("type") != "tool_use":
+                    continue
+                command = str((block.get("input") or {}).get("command", ""))
+                if "notify_finished" in block.get("name", "") or SHELL_CALL.search(command):
                     notified = True
             if not text:
                 texts = [b.get("text", "") for b in content if b.get("type") == "text" and b.get("text", "").strip()]
