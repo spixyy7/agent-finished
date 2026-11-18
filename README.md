@@ -28,6 +28,7 @@ You start an agent, switch to something else, and keep checking whether it is do
 - **No talking over each other.** When several agents finish at the same time, they speak one after another.
 - **Fast repeats.** Everything spoken is cached, so a phrase you hear often plays at once.
 - **Fallbacks.** If the internet is down, a local voice speaks. If that fails, the Windows voice speaks.
+- **A tray app.** An English settings window to pick the voice, phrase and languages, listen to voices and see which agents are connected. While finished is on, its icon sits in the tray. Closing the window keeps it running; **Quit** in the tray turns it off.
 - **Works automatically.** The installer connects every agent installed on your computer with three things: the MCP tool, an end-of-turn hook (Claude Code, Codex), and one rule in its instructions. You hear about every finished task, even when an agent forgets to call the tool, and never twice. `finished unregister` undoes it all.
 
 ## Install
@@ -40,7 +41,7 @@ cd agent-finished
 powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
-> **Connecting your agents is required.** `finished` only works when your agents call it, so the installer always connects them (see [Connect your agents](#connect-your-agents)). It first says what it will change and asks once. If you answer *no*, nothing is installed. Every changed file is backed up first, and `finished unregister` undoes it all. Pass `-Yes` to agree up front, for example in scripts.
+> **Connecting your agents is required.** `finished` only works when your agents call it, so the installer always connects them (see [Connect your agents](#connect-your-agents)). It first says what it will change and asks once. If you answer *no*, nothing is installed. Every changed file is backed up first, and `finished uninstall` undoes it all. Pass `-Yes` to agree up front, for example in scripts.
 
 The installer:
 
@@ -48,13 +49,28 @@ The installer:
 2. downloads the Kokoro model (about 350 MB, once) into `models/`
 3. puts a `finished` command in `%USERPROFILE%\.local\bin` for PowerShell, cmd and Git Bash, and adds that folder to your PATH
 4. connects every agent installed on your computer: the MCP tool, automatic notifications, and one rule
+5. adds **finished** to the Start menu, starts it with Windows, and starts it now in the tray
 
-When it is done, you hear *"finished is installed"*. Restart your agents, then run `finished setup` to choose your voice.
+When it is done, you hear *"finished is installed"* and the icon is in the tray. Restart your agents, then open **finished** from the Start menu to choose your voice.
+
+## The app
+
+<p align="center"><img src="docs/app.png" width="560" alt="finished settings window"></p>
+
+Open **finished** from the Start menu (or run `finished app`). Every change is saved right away.
+
+- **Tray.** While finished is on, its icon is in the tray. Click it to open the window. Right-click it for *Send test notification*, *Speak* on/off and *Quit finished*.
+- **Closing the window** hides it. finished stays on in the tray.
+- **Quit finished** turns it off. Agents' calls and hooks stay silent until you open the app again.
+- **Start with Windows** puts it back in the tray when you sign in. It does not turn finished on again after a Quit.
+
+From a terminal: `finished app` (open), `finished on` (start in the tray), `finished quit` (turn off).
 
 ## Quick start
 
 ```powershell
-finished setup                       # listen to voices, pick one, pick languages, phrase and mode
+finished app                         # the settings window
+finished setup                       # the same choices as a text menu in the terminal
 finished "Database migration done"   # what an agent runs
 finished preview anime               # hear all anime voices
 finished voices                      # list voices
@@ -204,6 +220,8 @@ The language is chosen in this order:
    - A single word keeps your main voice's language unless the detector is sure. Two- or three-letter words like `OK` or `API` need 95% certainty.
    - In `both` mode, the phrase and the message are detected separately, so `"Finished"` + `"Završio sam login"` uses two voices.
 
+**Read aloud: only your main voice's language.** Some languages only have older online voices that sound robotic. With `finished set speak main` (*Read aloud → Only English* in the app), only messages in your main voice's language are read. A message in another language makes the voice say your ready phrase, and the notification still shows the whole message. Agents are then told to write their summary in that language.
+
 Then the voice is chosen in this order: your main voice if it speaks that language, then your pick for that language (`voice-for`), then a native online voice of the same gender as your main voice, then a local Kokoro voice of that language, then your main voice.
 
 The included tests check 23 short English and Serbian messages (including single words) and 21 sentences in 21 languages with all languages enabled. All pass.
@@ -216,6 +234,7 @@ The included tests check 23 short English and Serbian messages (including single
 | `finished set voice-for CODE NAME` | Voice for another language (`default` resets it). |
 | `finished set language auto\|CODE` | Detect each message, or always use one language. |
 | `finished set detect all\|en,sr,...` | Languages auto-detect chooses from. |
+| `finished set speak all\|main` | Read every language in its own voice, or only your main voice's language (others say the ready phrase). |
 | `finished set mode preset\|agent\|both` | Say the ready phrase, the agent's message, or both. |
 | `finished set phrase N\|"text"` | Pick a ready phrase (`finished phrases`) or write your own. |
 | `finished set volume 0-200` | Volume in percent. |
@@ -223,6 +242,7 @@ The included tests check 23 short English and Serbian messages (including single
 | `finished set sound on\|off` | Turn the voice on or off. |
 | `finished set words 3-40` | Most words spoken from a message (default 14). |
 | `finished config` | Show the settings (stored in `config.json`). |
+| `finished app` / `on` / `quit` | Open the window, start in the tray, or turn finished off. |
 
 CLI options for a single call: `-a AGENT`, `-l CODE`, `-v VOICE`, `-p N|"phrase"`, `-w` (wait until spoken), `--no-voice`, `--no-toast`.
 
@@ -237,7 +257,8 @@ turn ends ─► hook (Claude, Codex) ┘                      └─► languag
 
 - `finished.py` contains the CLI, voices, language detection, speech and the MCP server.
 - `agents.py` contains `register` / `unregister` and the end-of-turn hooks.
-- `toast.ps1` shows the notification. It registers its own app name, **Agents**, so you can mute it in Windows settings.
+- `app.py` contains the settings window and the tray icon (Tk with the Sun Valley theme, pystray).
+- `toast.ps1` shows the notification. It registers its own app name, **finished**, so you can mute it in Windows settings.
 - `languages.json` lists the languages and online voices. Rebuild it with `python tools/build_languages.py`.
 - `cache/` holds the spoken WAV files (the newest 500) and `finished.log`.
 
@@ -252,7 +273,9 @@ turn ends ─► hook (Claude, Codex) ┘                      └─► languag
 | Problem | Try |
 |---|---|
 | No sound | Run `finished -w "test"` and read `cache/finished.log`. |
-| No notification | Turn off Focus / Do Not Disturb, and check Settings → System → Notifications → **Agents**. |
+| Nothing at all | finished is off (you quit it). Open it from the Start menu, or run `finished on`. |
+| No notification | Turn off Focus / Do Not Disturb, and check Settings → System → Notifications → **finished**. |
+| A language sounds robotic | Use *Read aloud → Only English* (`finished set speak main`), or pick another voice for it (`finished voices CODE`). |
 | The first message takes about 3 s | That is the model loading. Phrases are cached, and later messages are faster. |
 | A message is read in the wrong language | Narrow it down with `finished set detect en,xx`, or have the agent pass `language`. |
 | The agent does not see the tool | Run `finished register` again and restart the agent. |
@@ -262,15 +285,15 @@ turn ends ─► hook (Claude, Codex) ┘                      └─► languag
 ## Uninstall
 
 ```powershell
-finished unregister          # take finished out of every agent (backups are kept)
+finished uninstall           # quit, take finished out of every agent, remove the shortcut, autostart and command
 ```
 
-Then delete the folder, plus `finished.cmd` and `finished` from `%USERPROFILE%\.local\bin`.
+Then delete the folder. Backups of every agent file it changed are kept next to them (`*.bak-<time>`). To only disconnect agents, use `finished unregister`.
 
 ## Development
 
 ```powershell
-.venv\Scripts\python.exe -m unittest discover tests     # detection, voices, text, MCP, register round trip, hooks
+.venv\Scripts\python.exe -m unittest discover tests     # detection, voices, speaking rules, MCP, register round trip, hooks
 .venv\Scripts\python.exe tools\build_languages.py        # refresh the language and voice list
 ```
 
@@ -281,6 +304,7 @@ Then delete the folder, plus `finished.cmd` and `finished` from `%USERPROFILE%\.
 - [edge-tts](https://github.com/rany2/edge-tts) by rany2 (LGPL-3.0), the online voices
 - [Lingua](https://github.com/pemistahl/lingua-py) by Peter M. Stahl (Apache-2.0), language detection
 - [python-soundfile](https://github.com/bastibe/python-soundfile) (BSD-3-Clause)
+- [pystray](https://github.com/moses-palmer/pystray) (LGPL-3.0), [Pillow](https://python-pillow.org/) (MIT-CMU) and [Sun Valley ttk theme](https://github.com/rdbende/Sun-Valley-ttk-theme) (MIT), the app
 
 This project is not affiliated with Microsoft, Anthropic, OpenAI, Google or any agent vendor.
 

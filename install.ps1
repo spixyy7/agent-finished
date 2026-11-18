@@ -29,8 +29,10 @@ Write-Host '  - adds the notify_finished tool (MCP) to Claude Code, Codex, Gemin
 Write-Host '  - turns on automatic notifications when a turn ends (Claude Code Stop hook, Codex notify;'
 Write-Host '    a notify program you already have keeps working, it is run right after)'
 Write-Host '  - adds one short rule to their global instructions (CLAUDE.md, AGENTS.md, GEMINI.md, ...)'
+Write-Host 'It also adds finished to the Start menu and starts it with Windows. While it is on, its icon'
+Write-Host 'sits in the tray; Quit there turns it off until you open it again.'
 Write-Host 'Only agents installed on this computer are touched. Every changed file is backed up first.'
-Write-Host 'Undo any time: finished unregister'
+Write-Host 'Undo any time: finished uninstall'
 Write-Host ''
 if (-not $Yes) {
     $answer = Read-Host 'Install finished and connect your agents? [Y/n]'
@@ -40,7 +42,7 @@ if (-not $Yes) {
     }
 }
 
-Write-Host '1/4  Python environment'
+Write-Host '1/5  Python environment'
 if (-not (Test-Path $py)) {
     if ($hasUv) { uv venv (Join-Path $root '.venv') --python 3.12 }
     elseif (Get-Command py -ErrorAction SilentlyContinue) { py -3.12 -m venv (Join-Path $root '.venv') }
@@ -51,7 +53,7 @@ if ($hasUv) { uv pip install --python $py -r (Join-Path $root 'requirements.txt'
 else { & $py -m pip install --disable-pip-version-check -r (Join-Path $root 'requirements.txt') }
 if ($LASTEXITCODE) { throw 'Installing the Python packages failed.' }
 
-Write-Host '2/4  Voice model (Kokoro-82M, about 350 MB, downloaded once)'
+Write-Host '2/5  Voice model (Kokoro-82M, about 350 MB, downloaded once)'
 $models = Join-Path $root 'models'
 New-Item -ItemType Directory -Force $models | Out-Null
 $base = 'https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0'
@@ -64,7 +66,7 @@ foreach ($file in 'kokoro-v1.0.onnx', 'voices-v1.0.bin') {
     }
 }
 
-Write-Host '3/4  The finished command'
+Write-Host '3/5  The finished command'
 New-Item -ItemType Directory -Force $BinDir | Out-Null
 [IO.File]::WriteAllText((Join-Path $BinDir 'finished.cmd'), "@echo off`r`n`"$py`" `"$script`" %*`r`n")
 $sh = "#!/bin/sh`nexec `"$($py -replace '\\', '/')`" `"$($script -replace '\\', '/')`" `"`$@`"`n"
@@ -75,9 +77,26 @@ if (($userPath -split ';') -notcontains $BinDir) {
     Write-Host "     added $BinDir to your PATH - open a new terminal to use it"
 }
 
-Write-Host '4/4  Connecting your agents'
+Write-Host '4/5  Connecting your agents'
 & $py $script register all
 if ($LASTEXITCODE) { throw 'Connecting the agents failed. Run "finished register" to try again.' }
 
+Write-Host '5/5  The finished app (Start menu, starts with Windows, lives in the tray)'
+$pyw = Join-Path $root '.venv\Scripts\pythonw.exe'
+if (-not (Test-Path $pyw)) { $pyw = $py }
+$ico = Join-Path $root 'icon.ico'
+$lnk = Join-Path ([Environment]::GetFolderPath('Programs')) 'finished.lnk'
+$shell = New-Object -ComObject WScript.Shell
+$shortcut = $shell.CreateShortcut($lnk)
+$shortcut.TargetPath = $pyw
+$shortcut.Arguments = "`"$script`" app --here"
+$shortcut.WorkingDirectory = $root
+$shortcut.IconLocation = $ico
+$shortcut.Description = 'finished - your AI agents tell you when they are done'
+$shortcut.Save()
+Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'finished' -Value "`"$pyw`" `"$script`" tray"
+& $py $script on | Out-Null
+
 & $py $script -w -l en 'finished is installed'
-Write-Host 'Done. Restart your agents, then try: finished setup' -ForegroundColor Green
+Write-Host 'Done. finished is on - look for its icon in the tray. Open it from the Start menu: finished' -ForegroundColor Green
+Write-Host 'Restart your agents so they load it.' -ForegroundColor Green

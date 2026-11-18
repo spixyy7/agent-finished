@@ -2,4 +2,7 @@ edge-tts>=7.0
 kokoro-onnx>=0.5
 lingua-language-detector>=2.0
 numpy>=1.26
+pillow>=10.0
+pystray>=0.19
 soundfile>=0.12
+sv-ttk>=2.6

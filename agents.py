@@ -440,3 +440,61 @@ def hook(args):
         else:
             fin.spawn(job)
     return 0
+
+
+# ---------------------------------------------------------------- status (for the app)
+
+LABELS = {"claude": "Claude Code", "codex": "Codex", "grok": "Grok CLI", "gemini": "Gemini CLI",
+          "qwen": "Qwen Code", "cursor": "Cursor", "windsurf": "Windsurf", "opencode": "OpenCode"}
+
+
+def status():
+    """[(agent, installed, {part: connected?})] without changing anything."""
+    def jkey(path, kind="mcpServers"):
+        data, _ = load_json(path)
+        if kind == "opencode":
+            m = data.get("mcp", {})
+            servers = m["servers"] if isinstance(m.get("servers"), dict) else m
+        else:
+            servers = data.get(kind, {})
+        return "finished" in servers
+
+    def tkey(path):
+        return bool(re.search(r"^\[mcp_servers\.finished\]", read_text(path)[0], re.M))
+
+    def rule(path):
+        return MARK_START in read_text(path)[0]
+
+    def claude_auto():
+        stop = load_json(h(".claude", "settings.json"))[0].get("hooks", {}).get("Stop", [])
+        return any("hook claude" in x.get("command", "") for e in stop for x in e.get("hooks", []))
+
+    def codex_auto():
+        found = toml_top_key(read_text(h(".codex", "config.toml"))[0].splitlines(), "notify")
+        return bool(found) and any("finished.py" in str(x) for x in found[2])
+
+    checks = {
+        "claude": {"tool": lambda: "finished" in load_json(h(".claude.json"))[0].get("mcpServers", {}),
+                   "auto": claude_auto, "rule": lambda: rule(h(".claude", "CLAUDE.md"))},
+        "codex": {"tool": lambda: tkey(h(".codex", "config.toml")), "auto": codex_auto,
+                  "rule": lambda: rule(h(".codex", "AGENTS.md"))},
+        "grok": {"tool": lambda: tkey(h(".grok", "config.toml"))},
+        "gemini": {"tool": lambda: jkey(h(".gemini", "settings.json")), "rule": lambda: rule(h(".gemini", "GEMINI.md"))},
+        "qwen": {"tool": lambda: jkey(h(".qwen", "settings.json")), "rule": lambda: rule(h(".qwen", "QWEN.md"))},
+        "cursor": {"tool": lambda: jkey(h(".cursor", "mcp.json"))},
+        "windsurf": {"tool": lambda: jkey(h(".codeium", "windsurf", "mcp_config.json")),
+                     "rule": lambda: rule(h(".codeium", "windsurf", "memories", "global_rules.md"))},
+        "opencode": {"tool": lambda: jkey(h(".config", "opencode", "opencode.json"), "opencode"),
+                     "rule": lambda: rule(h(".config", "opencode", "AGENTS.md"))},
+    }
+    out = []
+    for name, (installed, _) in agent_table().items():
+        parts = {}
+        if installed:
+            for part, check in checks[name].items():
+                try:
+                    parts[part] = bool(check())
+                except Exception:
+                    parts[part] = False
+        out.append((name, installed, parts))
+    return out

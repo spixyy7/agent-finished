@@ -14,7 +14,7 @@ import sys
 import time
 import unicodedata
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 HOME = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HOME, "cache")
 MODEL = os.path.join(HOME, "models", "kokoro-v1.0.onnx")
@@ -40,6 +40,9 @@ DEFAULTS = {
     "toast": True,
     "sound": True,
     "max_words": 14,
+    "speak": "all",          # all = every language in its own voice; main = only the main
+                             # voice's language, other messages say the ready phrase
+    "enabled": True,         # False after Quit in the tray: silent until the app is opened
 }
 
 PHRASES = [
@@ -456,16 +459,27 @@ def play(paths):
                 pass
 
 
-def speak(parts, cfg, main=None):
+def speak(parts, cfg, main=None, phrase=None):
     """Speak each (text, language or None) in that language's voice, one after another.
-    Language: the one given, else the fixed setting, else detected from the text."""
+    Language: the one given, else the fixed setting, else detected from the text.
+    With speak = "main", a message in another language than the main voice's is replaced
+    by the ready phrase (the notification still shows the message)."""
     main = main or cfg["voice"]
+    main_lang = VOICES[main]["lang"]
     paths = []
+    said_phrase = False
     for text, lang in parts:
         text = short_text(text, cfg["max_words"])
         if not text:
             continue
+        is_phrase = phrase is not None and text == short_text(phrase, cfg["max_words"])
         code = lang or (cfg["language"] if cfg["language"] in LANGS else detect(text, cfg))
+        if not is_phrase and cfg.get("speak") == "main" and code != main_lang:
+            if said_phrase or not phrase:
+                continue
+            text = short_text(phrase, cfg["max_words"])
+            code, is_phrase = detect(text, cfg), True
+        said_phrase = said_phrase or is_phrase
         path = synth(text, voice_for(code, cfg, main), cfg)
         if path:
             paths.append(path)
@@ -529,6 +543,8 @@ def make_icon(path, n=128):
 
 def run_job(job):
     cfg = load_cfg()
+    if not cfg.get("enabled", True) and not job.get("warm"):
+        return  # the user quit finished; it stays silent until the app is opened again
     if job.get("warm"):
         for text in [cfg["phrase"]] + job.get("extra", []):
             t = short_text(text, cfg["max_words"])
@@ -555,7 +571,7 @@ def run_job(job):
             log(f"toast failed: {e!r}")
     if cfg["sound"] and not job.get("no_voice"):
         main = job.get("voice") if job.get("voice") in VOICES else cfg["voice"]
-        speak(parts, cfg, main)
+        speak(parts, cfg, main, phrase)
     if toast:
         try:
             toast.wait(15)
@@ -583,7 +599,9 @@ def spawn(job):
 
 def mcp_tools():
     cfg = load_cfg()
-    if cfg["language"] in LANGS:
+    if cfg.get("speak") == "main":  # only the main voice's language is read aloud
+        rule = f"Write it in {lang_name(VOICES[cfg['voice']]['lang'])}."
+    elif cfg["language"] in LANGS:
         rule = f"Write it in {lang_name(cfg['language'])}."
     elif cfg["detect"] != "all" and cfg["detect"]:
         rule = "Write it in the user's language (" + ", ".join(lang_name(c) for c in detect_candidates(cfg)) + ")."
@@ -649,6 +667,10 @@ def mcp():
             job = {"message": str(args.get("message") or "").strip(),
                    "agent": str(args.get("agent") or "").strip(),
                    "language": str(args.get("language") or "").strip().lower()[:3]}
+            if not load_cfg().get("enabled", True):
+                res = {"content": [{"type": "text", "text": "finished is turned off (the user quit it); nothing was shown."}], "isError": False}
+                send({"jsonrpc": "2.0", "id": rid, "result": res})
+                continue
             try:
                 spawn(job)
                 import agents
@@ -683,12 +705,17 @@ HELP = """finished - tell the user an agent is done (notification + voice)
   finished set voice-for CODE NAME     voice for another language, e.g. voice-for sr sr-nicholas
   finished set language auto|CODE     auto = detect every message; CODE = always that language
   finished set detect all|en,sr,...    languages auto-detect picks from (fewer = more precise)
+  finished set speak all|main         main = read aloud only the main voice's language;
+                                       messages in other languages say the ready phrase
   finished set mode preset|agent|both  preset = always the phrase, agent = the agent's message,
                                        both = phrase, then message
   finished set phrase N|"text"         ready phrase by number, or your own
   finished set volume 0-200 | toast on|off | sound on|off | words 3-40
 
-  finished setup                       menu: try and pick voice, languages, phrase, mode
+  finished app                         open the settings window (finished runs in the tray)
+  finished quit                        quit the tray app: finished stays silent until opened again
+  finished uninstall                   quit, disconnect all agents, remove shortcut and autostart
+  finished setup                       text menu: try and pick voice, languages, phrase, mode
   finished config                      current settings
   finished register [all|claude|codex|grok|gemini|qwen|cursor|windsurf|opencode]
                                        connect installed agents: MCP tool, automatic
@@ -841,6 +868,10 @@ def set_value(cfg, key, val):
         if codes is None:
             return "detect is all or codes from finished languages, e.g. en,sr"
         cfg["detect"] = codes
+    elif key == "speak":
+        if val not in ("all", "main"):
+            return "speak is all (every language in its own voice) or main (only the main voice's language)"
+        cfg["speak"] = val
     elif key == "mode":
         if val not in ("preset", "agent", "both"):
             return "mode is preset, agent or both"
@@ -964,6 +995,9 @@ def main(argv):
     if cmd in simple:
         simple[cmd]()
         return 0
+    if cmd in ("app", "tray", "quit", "on", "off", "uninstall"):
+        import app
+        return app.command(cmd, rest)
     if cmd in ("register", "unregister", "hook"):
         import agents
         if cmd == "hook":

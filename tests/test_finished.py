@@ -153,6 +153,48 @@ class Mcp(unittest.TestCase):
         self.assertEqual(res[2]["error"]["code"], -32601)
 
 
+class Speaking(unittest.TestCase):
+    """What is said, without making sound: synth and play are replaced."""
+
+    def setUp(self):
+        self.said = []
+        self.old = f.synth, f.play
+        f.synth = lambda text, voice, cfg: self.said.append((text, voice)) or "x.wav"
+        f.play = lambda paths: None
+
+    def tearDown(self):
+        f.synth, f.play = self.old
+
+    def test_english_only_says_phrase_for_other_languages(self):
+        c = cfg(detect=["en", "sr"], speak="main", phrase="Finished, senpai!")
+        f.speak([("Završio sam login stranicu", None)], c, "anime-sexy", c["phrase"])
+        self.assertEqual(self.said, [("Finished, senpai!", "anime-sexy")])
+
+    def test_english_only_reads_english(self):
+        c = cfg(detect=["en", "sr"], speak="main")
+        f.speak([("Login page fixed", None)], c, "anime-sexy", c["phrase"])
+        self.assertEqual(self.said, [("Login page fixed", "anime-sexy")])
+
+    def test_both_mode_does_not_repeat_phrase(self):
+        c = cfg(detect=["en", "sr"], speak="main")
+        f.speak([("Finished", None), ("Završio sam login", None)], c, "anime-sexy", "Finished")
+        self.assertEqual(self.said, [("Finished", "anime-sexy")])
+
+    def test_every_language_uses_native_voice(self):
+        c = cfg(detect=["en", "sr"], speak="all")
+        f.speak([("Završio sam login stranicu", None)], c, "anime-sexy", "Finished")
+        self.assertEqual(self.said[0][1], "sr-sophie")
+
+    def test_silent_when_quit(self):
+        old = f.load_cfg
+        f.load_cfg = lambda: cfg(enabled=False)
+        try:
+            f.run_job({"message": "Done", "no_toast": True})
+        finally:
+            f.load_cfg = old
+        self.assertEqual(self.said, [])
+
+
 class Agents(unittest.TestCase):
     """register / unregister on a made-up home folder: must add everything once and
     leave every file byte-for-byte as it was after unregister."""

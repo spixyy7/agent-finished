@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 $appId = 'Agents.Finished'
 $key = "HKCU:\Software\Classes\AppUserModelId\$appId"
 if (-not (Test-Path $key)) { New-Item -Path $key -Force | Out-Null }
-Set-ItemProperty -Path $key -Name DisplayName -Value 'Agents'
+Set-ItemProperty -Path $key -Name DisplayName -Value 'finished'
 if ($env:FIN_ICON -and (Test-Path $env:FIN_ICON)) {
     Set-ItemProperty -Path $key -Name IconUri -Value $env:FIN_ICON
 }
