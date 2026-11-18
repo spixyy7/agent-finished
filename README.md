@@ -10,7 +10,7 @@ One command and one MCP tool, so any agent can call it: Claude Code, Codex, Gemi
 finished -a Claude "Login page fixed and tests pass"
 ```
 
-> 🔔 **Claude: Finished** — *Login page fixed and tests pass* &nbsp;·&nbsp; 🔊 a soft anime voice reads it to you
+> 🔔 **Claude: Finished** — *Login page fixed and tests pass* &nbsp;·&nbsp; 🔊 an anime girl (Shikoku Metan, *sexy* style) reads it to you
 
 ---
 
@@ -21,7 +21,8 @@ You start an agent, switch to something else, and keep checking whether it is do
 ## Features
 
 - **One call does both.** It shows a Windows notification and speaks the message. The call returns in about 0.15 s and the speech plays in the background, so the agent is never held up.
-- **223 voices.** 49 local Kokoro voices: anime girls, whisper, sultry, deep male, British. Plus 172 online neural voices in 75 languages, and Windows' built-in voices as a last resort.
+- **Real anime voices.** 18 [VOICEVOX](https://voicevox.hiroshiba.jp) characters (Shikoku Metan, Kyushu Sora, Zundamon, ...) in *sexy*, *whisper* and *sweet* styles, running locally. They read English with a Japanese accent, like in anime.
+- **241 voices in all.** Plus 49 local Kokoro voices (whisper, sultry, deep male, British, ...), 172 online neural voices in 75 languages, and Windows' built-in voices as a last resort.
 - **Local first.** The default voices run offline on your CPU with [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M), and nothing leaves your computer.
 - **Language detection.** The language is detected offline with [Lingua](https://github.com/pemistahl/lingua-py). A Serbian message is read by a Serbian voice, a German one by a German voice. Agents can also name the language themselves, which is exact.
 - **Ready phrase, the agent's own words, or both.** `"Finished, senpai!"`, `"Login page fixed"`, or `"Finished. Login page fixed."`.
@@ -49,7 +50,8 @@ The installer:
 2. downloads the Kokoro model (about 350 MB, once) into `models/`
 3. puts a `finished` command in `%USERPROFILE%\.local\bin` for PowerShell, cmd and Git Bash, and adds that folder to your PATH
 4. connects every agent installed on your computer: the MCP tool, automatic notifications, and one rule
-5. adds **finished** to the Start menu, starts it with Windows, and starts it now in the tray
+5. asks whether to add the anime voices (VOICEVOX, about 1.9 GB; `-NoAnime` skips them, `finished voicevox install` adds them later)
+6. adds **finished** to the Start menu, starts it with Windows, and starts it now in the tray
 
 When it is done, you hear *"finished is installed"* and the icon is in the tray. Restart your agents, then open **finished** from the Start menu to choose your voice.
 
@@ -72,7 +74,7 @@ From a terminal: `finished app` (open), `finished on` (start in the tray), `fini
 finished app                         # the settings window
 finished setup                       # the same choices as a text menu in the terminal
 finished "Database migration done"   # what an agent runs
-finished preview anime               # hear all anime voices
+finished preview anime               # hear all anime voices (VOICEVOX)
 finished voices                      # list voices
 ```
 
@@ -176,24 +178,36 @@ finished -a <your name> -l <code> "<summary>"
 ## Voices
 
 ```powershell
-finished voices             # English voices, grouped
+finished voices             # anime and English voices, grouped
 finished voices sr          # voices of one language
-finished voices all         # all 223
-finished preview sexy       # hear a group: anime | sexy | female | male | local | online | <code> | <name>
-finished set voice anime-whisper
+finished voices all         # all of them
+finished preview anime      # hear a group: anime | sexy | female | male | local | online | <code> | <name>
+finished set voice metan-whisper
 ```
+
+**Anime voices** (offline, [VOICEVOX](https://voicevox.hiroshiba.jp), `finished voicevox install`):
+
+| Character | Voices |
+|---|---|
+| Shikoku Metan | `metan-sexy` (default), `metan-whisper`, `metan-hush`, `metan-sweet`, `metan-tsun` |
+| Kyushu Sora | `sora-sexy`, `sora-whisper`, `sora-sweet` |
+| Zundamon | `zundamon-sexy`, `zundamon-whisper`, `zundamon-sweet` |
+| Others | `tsumugi`, `himari`, `sayo`, `nurse-secret` (a whispered secret) |
+| Men | `ryusei`, `takehiro`, `kotaro` |
+
+These are VOICEVOX's own character voices with their *セクシー* (sexy), *ささやき* (whisper) and *あまあま* (sweet) styles. Japanese text is read natively and English words are read with a Japanese accent ("Login page fixed" becomes *ロギン ペエジ フィックスト*). The engine starts by itself the first time it is needed (about 280 MB of memory) and stops when you quit finished. Try the Japanese ready phrases too: *おわったよ♡* ("I'm done"), *お疲れさま♡* ("good work"), *できたよ、ご主人様♡* ("it's done, master").
 
 **Local voices** (offline, Kokoro):
 
 | Group | Voices |
 |---|---|
-| Anime girls | `anime-sexy` (default: soft, slow), `anime-whisper`, `anime`, `anime-cute`, `anime-fox`, `anime-soft`, `anime-bella`, `anime-heart` |
 | Sultry, whisper | `whisper`, `sultry`, `bella`, `heart` |
+| Japanese accent | `jp-soft`, `jp-whisper`, `jp-girl`, `jp-cute`, `jp-fox`, `jp-gentle`, `jp-bella`, `jp-heart` |
 | Other women | `sky`, `nova`, `sarah`, `jessica`, `aoede`, `kore`, `river`, `emma-uk`, `isabella-uk`, `lily-uk`, `alice-uk` |
-| Men | `deep`, `anime-boy`, `adam`, `michael`, `fenrir`, `puck`, `onyx`, `echo`, `eric`, `liam`, `santa`, `george-uk`, `fable-uk`, `lewis-uk`, `daniel-uk` |
+| Men | `deep`, `jp-boy`, `adam`, `michael`, `fenrir`, `puck`, `onyx`, `echo`, `eric`, `liam`, `santa`, `george-uk`, `fable-uk`, `lewis-uk`, `daniel-uk` |
 | Other languages | `es-dora-local`, `es-alex-local`, `fr-siwis-local`, `it-sara-local`, `it-nicola-local`, `pt-dora-local`, `pt-alex-local`, `hi-alpha-local`, `hi-beta-local`, `hi-omega-local`, `hi-psi-local` |
 
-The anime voices are Kokoro's Japanese voices speaking English. Some are blended with the whispering `af_nicole` voice (for example `jf_alpha*0.6+af_nicole*0.4`).
+The `jp-*` voices are Kokoro's Japanese voices speaking English, some blended with the whispering `af_nicole` voice. Without VOICEVOX, the default voice is `heart`.
 
 **Online voices** need internet and come from Microsoft Edge's neural voices: `ava`, `ava-sexy`, `emma`, `jenny`, `aria`, `sonia-uk`, `andrew`, `brian`, `christopher`, `guy`, `ryan-uk`, plus 2–6 native voices for each of 75 languages (`sr-sophie`, `de-tanja`, `ja-nanami`, ...).
 
@@ -264,7 +278,7 @@ turn ends ─► hook (Claude, Codex) ┘                      └─► languag
 
 ## Privacy
 
-- With local voices (Kokoro, Windows), nothing leaves your computer.
+- With local voices (VOICEVOX, Kokoro, Windows), nothing leaves your computer.
 - With **online voices**, the message text is sent to Microsoft's Edge read-aloud service through [edge-tts](https://github.com/rany2/edge-tts). Messages in languages without a local voice use an online voice. To stay fully offline, run `finished set language en` (or keep `detect` to languages that have local voices) and pick a local main voice.
 - There is no telemetry and no account.
 
@@ -299,6 +313,7 @@ Then delete the folder. Backups of every agent file it changed are kept next to 
 
 ## Credits
 
+- [VOICEVOX](https://voicevox.hiroshiba.jp) by Hiroshiba Kazuyuki and contributors (engine LGPL-3.0), the anime voices. Each character has its own [terms](https://voicevox.hiroshiba.jp/term/). They are free to use, and if you publish audio made with them, credit the character, for example `VOICEVOX:四国めたん`. finished does not ship VOICEVOX; `finished voicevox install` downloads the official engine.
 - [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) by hexgrad (Apache-2.0), the local voices
 - [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx) by thewh1teagle (MIT), which runs Kokoro with ONNX Runtime
 - [edge-tts](https://github.com/rany2/edge-tts) by rany2 (LGPL-3.0), the online voices

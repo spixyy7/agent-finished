@@ -198,6 +198,8 @@ class App(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.hide)
         self.tray = self.make_tray()
         self.refresh_agents()
+        if fin.VOICES[fin.load_cfg()["voice"]]["engine"] == "voicevox":
+            fin.spawn({"warm": True})  # start the anime voice engine now, not at the first message
         self.after(250, self.poll)
         if not hidden:
             self.show()
@@ -240,8 +242,9 @@ class App(tk.Tk):
         row = ttk.Frame(root)
         row.grid(row=r, column=0, sticky="ew")
         row.columnconfigure(0, weight=1)
-        self.voice_names = ([n for n, v in fin.VOICES.items() if v["lang"] == "en"]
-                            + sorted((n for n, v in fin.VOICES.items() if v["lang"] != "en"),
+        self.voice_names = ([n for n, v in fin.VOICES.items() if v["engine"] == "voicevox"]
+                            + [n for n, v in fin.VOICES.items() if v["lang"] == "en"]
+                            + sorted((n for n, v in fin.VOICES.items() if v["lang"] != "en" and v["engine"] != "voicevox"),
                                      key=lambda n: (fin.lang_name(fin.VOICES[n]["lang"]), n)))
         self.voice_labels = [self.voice_label(n) for n in self.voice_names]
         self.voice = ttk.Combobox(row, values=self.voice_labels, state="readonly", width=52, height=18)
@@ -351,7 +354,10 @@ class App(tk.Tk):
         return f"{name}  —  {v['d']}"
 
     def update_speak_label(self):
-        lang = fin.lang_name(fin.VOICES[fin.load_cfg()["voice"]]["lang"])
+        v = fin.VOICES[fin.load_cfg()["voice"]]
+        lang = fin.lang_name(v["lang"])
+        if v.get("latin") and v["lang"] != "en":
+            lang = f"English and {lang}"
         self.speak_main.config(text=f"Only {lang}, other languages say the ready phrase (best quality)")
 
     # ---- actions
@@ -390,14 +396,13 @@ class App(tk.Tk):
         threading.Thread(target=run, daemon=True).start()
 
     def listen(self):
+        """Say the ready phrase that is in the box, in the voice that is picked."""
         name = self.voice_names[self.voice_labels.index(self.voice.get())]
-        cfg = fin.load_cfg()
-        sample = fin.SAMPLES.get(fin.VOICES[name]["lang"], fin.SAMPLES["en"])
+        phrase = self.phrase.get().strip() or fin.load_cfg()["phrase"]
+        cfg = dict(fin.load_cfg(), speak="all")  # always hear the phrase itself
 
         def work():
-            path = fin.synth(fin.short_text(sample, 30), name, cfg)
-            if path:
-                fin.play([path])
+            fin.speak([(phrase, None)], cfg, name, phrase)
         self.background(work)
 
     def test(self):
@@ -526,6 +531,7 @@ class App(tk.Tk):
     def quit_app(self, already_off=False):
         if not already_off:
             set_enabled(False)
+        fin.stop_voicevox()  # free its memory; it starts again when needed
         if self.tray:
             try:
                 self.tray.stop()

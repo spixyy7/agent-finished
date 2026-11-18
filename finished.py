@@ -1,7 +1,7 @@
 """finished - any AI agent tells you it is done.
 
 Shows a Windows notification and speaks a short message aloud: local Kokoro voices
-(anime, sultry, male, ...) or online neural voices in 75 languages, with the
+(VOICEVOX anime characters, Kokoro, ...) or online voices in 75 languages, with the
 message's language detected offline. `finished help` lists the commands and
 `finished mcp` runs the MCP server.
 """
@@ -9,12 +9,13 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
 import unicodedata
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 HOME = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HOME, "cache")
 MODEL = os.path.join(HOME, "models", "kokoro-v1.0.onnx")
@@ -30,7 +31,7 @@ PYW = os.path.join(os.path.dirname(PY), "pythonw.exe")
 NO_WINDOW = 0x08000000
 
 DEFAULTS = {
-    "voice": "anime-sexy",   # main voice; speaks every message in its own language
+    "voice": "metan-sexy",   # main voice (falls back to "heart" without VOICEVOX)
     "lang_voices": {},       # voice per other language, e.g. {"sr": "sr-nicholas"}
     "language": "auto",      # auto = detect each message; or one code, e.g. "en"
     "detect": "all",         # languages auto-detect chooses from: "all" or ["en", "sr"]
@@ -54,6 +55,9 @@ PHRASES = [
     "Mission complete!",
     "I'm finished. Your turn.",
     "Gotovo!",
+    "おわったよ♡",
+    "お疲れさま♡",
+    "できたよ、ご主人様♡",
 ]
 
 SAMPLES = {
@@ -83,15 +87,15 @@ ALIAS_GROUPS = [("sr", "hr", "bs"), ("nb", "nn")]
 # Curated English voices. engine: kokoro = local model, edge = online, sapi = Windows.
 # Kokoro voices may be blends: "jf_alpha*0.6+af_nicole*0.4".
 EN_VOICES = {
-    # anime girls (local): Japanese Kokoro voices speaking English
-    "anime-sexy": dict(engine="kokoro", id="jf_alpha*0.6+af_nicole*0.4", speed=0.88, g="f", tag="anime", d="sexy anime girl, soft and slow (default)"),
-    "anime-whisper": dict(engine="kokoro", id="jf_tebukuro*0.5+af_nicole*0.5", speed=0.85, g="f", tag="anime", d="anime girl whispering in your ear"),
-    "anime": dict(engine="kokoro", id="jf_alpha", speed=1.0, g="f", tag="anime", d="anime girl, English with a Japanese accent"),
-    "anime-cute": dict(engine="kokoro", id="jf_nezumi", speed=1.05, g="f", tag="anime", d="cute, high anime girl"),
-    "anime-fox": dict(engine="kokoro", id="jf_gongitsune", speed=0.95, g="f", tag="anime", d="playful fox girl"),
-    "anime-soft": dict(engine="kokoro", id="jf_tebukuro", speed=0.92, g="f", tag="anime", d="gentle, soft anime girl"),
-    "anime-bella": dict(engine="kokoro", id="jf_alpha*0.5+af_bella*0.5", speed=0.95, g="f", tag="anime", d="anime girl mixed with Bella, more energy"),
-    "anime-heart": dict(engine="kokoro", id="jf_alpha*0.4+af_heart*0.6", speed=0.9, g="f", tag="anime", d="warm anime girl, clearer English"),
+    # Kokoro's Japanese voices speaking English (a Japanese accent, not real anime voices)
+    "jp-soft": dict(engine="kokoro", id="jf_alpha*0.6+af_nicole*0.4", speed=0.88, g="f", d="soft and slow, Japanese accent"),
+    "jp-whisper": dict(engine="kokoro", id="jf_tebukuro*0.5+af_nicole*0.5", speed=0.85, g="f", tag="sexy", d="whispering, Japanese accent"),
+    "jp-girl": dict(engine="kokoro", id="jf_alpha", speed=1.0, g="f", d="girl, Japanese accent"),
+    "jp-cute": dict(engine="kokoro", id="jf_nezumi", speed=1.05, g="f", d="cute and high, Japanese accent"),
+    "jp-fox": dict(engine="kokoro", id="jf_gongitsune", speed=0.95, g="f", d="playful, Japanese accent"),
+    "jp-gentle": dict(engine="kokoro", id="jf_tebukuro", speed=0.92, g="f", d="gentle, Japanese accent"),
+    "jp-bella": dict(engine="kokoro", id="jf_alpha*0.5+af_bella*0.5", speed=0.95, g="f", d="lively, Japanese accent"),
+    "jp-heart": dict(engine="kokoro", id="jf_alpha*0.4+af_heart*0.6", speed=0.9, g="f", d="warm, light Japanese accent"),
     # other women (local)
     "whisper": dict(engine="kokoro", id="af_nicole", speed=0.9, g="f", tag="sexy", d="breathy ASMR whisper"),
     "sultry": dict(engine="kokoro", id="af_nicole*0.5+af_bella*0.5", speed=0.86, g="f", tag="sexy", d="low, slow and sultry"),
@@ -110,7 +114,7 @@ EN_VOICES = {
     "alice-uk": dict(engine="kokoro", id="bf_alice", speed=0.95, g="f", d="British woman"),
     # men (local)
     "deep": dict(engine="kokoro", id="am_onyx*0.6+am_fenrir*0.4", speed=0.88, g="m", d="deep, slow male voice"),
-    "anime-boy": dict(engine="kokoro", id="jm_kumo", speed=0.95, g="m", tag="anime", d="anime guy, English with a Japanese accent"),
+    "jp-boy": dict(engine="kokoro", id="jm_kumo", speed=0.95, g="m", d="man, Japanese accent"),
     "adam": dict(engine="kokoro", id="am_adam", speed=1.0, g="m", d="American man"),
     "michael": dict(engine="kokoro", id="am_michael", speed=1.0, g="m", d="American man, calm"),
     "fenrir": dict(engine="kokoro", id="am_fenrir", speed=1.0, g="m", d="American man, strong"),
@@ -140,7 +144,10 @@ EN_VOICES = {
     "zira": dict(engine="sapi", id="Microsoft Zira Desktop", g="f", d="Windows built-in woman (robotic)"),
     "david": dict(engine="sapi", id="Microsoft David Desktop", g="m", d="Windows built-in man (robotic)"),
 }
-EN_DEFAULT = {"f": "anime-sexy", "m": "deep"}
+EN_DEFAULT = {"f": "heart", "m": "deep"}
+# names from before 1.4, so old settings keep working
+OLD_NAMES = {'anime-sexy': 'jp-soft', 'anime-whisper': 'jp-whisper', 'anime-cute': 'jp-cute', 'anime-fox': 'jp-fox', 'anime-soft': 'jp-gentle', 'anime-bella': 'jp-bella', 'anime-heart': 'jp-heart', 'anime-boy': 'jp-boy'}
+
 
 # Kokoro's own voices for other languages: work offline (espeak-ng code in "k").
 KOKORO_NATIVE = {
@@ -151,7 +158,33 @@ KOKORO_NATIVE = {
     "hi-alpha-local": ("hf_alpha", "f", "hi", "hi"), "hi-beta-local": ("hf_beta", "f", "hi", "hi"),
     "hi-omega-local": ("hm_omega", "m", "hi", "hi"), "hi-psi-local": ("hm_psi", "m", "hi", "hi"),
 }
-ENGINE_LABEL = {"kokoro": "local", "edge": "online", "sapi": "windows"}
+# VOICEVOX: free Japanese anime character voices that run locally (`finished voicevox install`).
+# They also read English words, with a Japanese accent. name: (character, style, gender, description)
+VOICEVOX_DIR = os.path.join(HOME, "engines", "voicevox")
+VOICEVOX_URL = "http://127.0.0.1:50021"
+VOICEVOX_PKG = ("https://github.com/VOICEVOX/voicevox_engine/releases/download/0.26.2/"
+                "voicevox_engine-windows-cpu-0.26.2.vvpp")
+VOICEVOX_VOICES = {
+    "metan-sexy": ("四国めたん", "セクシー", "f", "Shikoku Metan, sexy - anime"),
+    "metan-whisper": ("四国めたん", "ささやき", "f", "Shikoku Metan, whispering in your ear - anime"),
+    "metan-hush": ("四国めたん", "ヒソヒソ", "f", "Shikoku Metan, hushed - anime"),
+    "metan-sweet": ("四国めたん", "あまあま", "f", "Shikoku Metan, sweet - anime"),
+    "metan-tsun": ("四国めたん", "ツンツン", "f", "Shikoku Metan, tsundere - anime"),
+    "sora-sexy": ("九州そら", "セクシー", "f", "Kyushu Sora, sexy - anime"),
+    "sora-whisper": ("九州そら", "ささやき", "f", "Kyushu Sora, whispering - anime"),
+    "sora-sweet": ("九州そら", "あまあま", "f", "Kyushu Sora, sweet - anime"),
+    "zundamon-sexy": ("ずんだもん", "セクシー", "f", "Zundamon, sexy - anime"),
+    "zundamon-whisper": ("ずんだもん", "ささやき", "f", "Zundamon, whispering - anime"),
+    "zundamon-sweet": ("ずんだもん", "あまあま", "f", "Zundamon, sweet - anime"),
+    "tsumugi": ("春日部つむぎ", "ノーマル", "f", "Kasukabe Tsumugi, cheerful gal - anime"),
+    "himari": ("冥鳴ひまり", "ノーマル", "f", "Meimei Himari, calm and soft - anime"),
+    "sayo": ("小夜/SAYO", "ノーマル", "f", "Sayo, cat girl - anime"),
+    "nurse-secret": ("ナースロボ＿タイプＴ", "内緒話", "f", "Nurse Robot Type T, secret whisper - anime"),
+    "ryusei": ("青山龍星", "ノーマル", "m", "Aoyama Ryusei, deep - anime"),
+    "takehiro": ("玄野武宏", "ノーマル", "m", "Kurono Takehiro - anime"),
+    "kotaro": ("白上虎太郎", "ふつう", "m", "Shirakami Kotaro - anime"),
+}
+ENGINE_LABEL = {"kokoro": "local", "edge": "online", "sapi": "windows", "voicevox": "anime"}
 
 
 def load_languages():
@@ -165,8 +198,16 @@ def load_languages():
 LANGS = load_languages()
 
 
+def voicevox_installed():
+    return os.path.exists(os.path.join(VOICEVOX_DIR, "run.exe"))
+
+
 def build_voices():
     voices = {}
+    if voicevox_installed():
+        for name, (chara, style, g, d) in VOICEVOX_VOICES.items():
+            voices[name] = dict(engine="voicevox", id=f"{chara}/{style}", g=g, lang="ja", latin=True,
+                                tag="anime", d=d)
     for name, v in EN_VOICES.items():
         v = dict(v, lang="en")
         if v["engine"] == "kokoro":
@@ -208,8 +249,9 @@ def load_cfg():
             cfg.update(json.load(f))
     except (OSError, ValueError):
         pass
+    cfg["voice"] = OLD_NAMES.get(cfg["voice"], cfg["voice"])
     if cfg["voice"] not in VOICES:
-        cfg["voice"] = DEFAULTS["voice"]
+        cfg["voice"] = DEFAULTS["voice"] if DEFAULTS["voice"] in VOICES else "heart"
     return cfg
 
 
@@ -248,10 +290,12 @@ def detect_candidates(cfg):
 
 def detect(text, cfg, explain=False):
     """Best language for `text` among the user's candidates. Offline (Lingua)."""
-    primary = VOICES[cfg["voice"]]["lang"]
+    mv = VOICES[cfg["voice"]]
+    primary = "en" if mv.get("latin") else mv["lang"]  # a Japanese voice that reads English: English
     cands = detect_candidates(cfg)
-    if primary not in cands:
-        cands.append(primary)
+    for code in (primary, mv["lang"]):  # the main voice's own languages always count
+        if code not in cands and code in LANGS:
+            cands.append(code)
     if len(cands) == 1 or not re.search(r"[^\W\d_]", text):
         return (primary, {}) if explain else primary
     from lingua import IsoCode639_1, LanguageDetectorBuilder
@@ -287,7 +331,7 @@ def voice_for(lang, cfg, main):
     """Voice that speaks `lang`: the main voice if it is in that language, else the chosen
     or default voice of that language, same gender as the main voice where possible."""
     mv = VOICES[main]
-    if mv["lang"] == lang:
+    if mv["lang"] == lang or (mv.get("latin") and lang == "en"):
         return main
     pick = cfg["lang_voices"].get(lang)
     if pick in VOICES and VOICES[pick]["lang"] == lang:
@@ -313,6 +357,8 @@ def fallback_chain(name, cfg):
             chain.append(EN_DEFAULT[v["g"]])
         elif VOICES[cfg["voice"]]["engine"] == "kokoro":
             chain.append(cfg["voice"])
+    if v["engine"] == "voicevox":  # engine missing or not starting: a Japanese, then English voice
+        chain += [n for n in ("ja-keita" if v["g"] == "m" else "ja-nanami", EN_DEFAULT[v["g"]]) if n in VOICES]
     chain.append("david" if v["g"] == "m" else "zira")
     return list(dict.fromkeys(chain))
 
@@ -392,7 +438,145 @@ def synth_sapi(text, v, path, volume):
     write_wav(path, data, sr, volume)
 
 
-ENGINES = {"kokoro": synth_kokoro, "edge": synth_edge, "sapi": synth_sapi}
+def _vv(path, data=None, params=None, timeout=30):
+    import urllib.parse
+    import urllib.request
+    url = VOICEVOX_URL + path + ("?" + urllib.parse.urlencode(params) if params else "")
+    req = urllib.request.Request(url, data=data, method="GET" if data is None else "POST",
+                                 headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def voicevox_running():
+    try:
+        _vv("/version", timeout=1)
+        return True
+    except OSError:
+        return False
+
+
+def ensure_voicevox(wait=120):
+    """Start the local VOICEVOX engine if it is not running (hidden, once for all callers)."""
+    if voicevox_running():
+        return
+    exe = os.path.join(VOICEVOX_DIR, "run.exe")
+    if not os.path.exists(exe):
+        raise RuntimeError("VOICEVOX is not installed: finished voicevox install")
+    os.makedirs(CACHE, exist_ok=True)
+    lock = os.path.join(CACHE, "voicevox.starting")
+    try:
+        os.close(os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+        proc = subprocess.Popen([exe, "--host", "127.0.0.1", "--port", "50021"], cwd=VOICEVOX_DIR,
+                                creationflags=0x00000008 | 0x00000200, stdin=subprocess.DEVNULL,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
+        with open(os.path.join(CACHE, "voicevox.pid"), "w") as f:
+            f.write(str(proc.pid))
+    except FileExistsError:
+        pass  # someone else is starting it
+    try:
+        end = time.time() + wait
+        while time.time() < end:
+            if voicevox_running():
+                return
+            time.sleep(0.5)
+        raise RuntimeError("VOICEVOX did not start")
+    finally:
+        try:
+            if time.time() - os.path.getmtime(lock) > 5 or voicevox_running():
+                os.remove(lock)
+        except OSError:
+            pass
+
+
+def stop_voicevox():
+    pid_file = os.path.join(CACHE, "voicevox.pid")
+    try:
+        with open(pid_file) as f:
+            pid = int(f.read().strip())
+        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, creationflags=NO_WINDOW)
+        os.remove(pid_file)
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+def voicevox_speaker(key):
+    """Speaker id for 'character/style', from the engine's own list (cached)."""
+    path = os.path.join(CACHE, "voicevox_speakers.json")
+    ids = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            ids = json.load(f)
+    if key not in ids:
+        for s in json.loads(_vv("/speakers")):
+            for st in s["styles"]:
+                ids[f"{s['name']}/{st['name']}"] = st["id"]
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(ids, f, ensure_ascii=False)
+    if key not in ids:
+        raise RuntimeError(f"VOICEVOX has no voice {key}")
+    return ids[key]
+
+
+def synth_voicevox(text, v, path, volume):
+    import io
+    import soundfile as sf
+    ensure_voicevox()
+    sid = voicevox_speaker(v["id"])
+    query = json.loads(_vv("/audio_query", data=b"", params={"text": text, "speaker": sid}))
+    query.update(speedScale=v.get("speed", 1.0), pitchScale=v.get("pitch", 0.0),
+                 intonationScale=v.get("intonation", 1.0), prePhonemeLength=0.05, postPhonemeLength=0.2)
+    wav = _vv("/synthesis", data=json.dumps(query).encode(), params={"speaker": sid}, timeout=90)
+    data, sr = sf.read(io.BytesIO(wav), dtype="float32")
+    write_wav(path, data, sr, volume)
+
+
+def install_voicevox():
+    """Download and unpack the VOICEVOX engine (CPU build, about 1.9 GB) into engines/voicevox."""
+    import urllib.request
+    import zipfile
+    print("VOICEVOX is free software with Japanese anime character voices (https://voicevox.hiroshiba.jp).\n"
+          "Each character has its own terms (https://voicevox.hiroshiba.jp/term/). If you publish audio made\n"
+          "with it, credit the character, e.g. 'VOICEVOX:四国めたん'.\n")
+    if voicevox_installed():
+        print("Already installed:", VOICEVOX_DIR)
+        return 0
+    pkg = os.path.join(HOME, "engines", "voicevox.vvpp")
+    os.makedirs(os.path.dirname(pkg), exist_ok=True)
+    if not os.path.exists(pkg):
+        print("Downloading (about 1.9 GB)...")
+        tmp = pkg + ".part"
+        with urllib.request.urlopen(VOICEVOX_PKG) as r, open(tmp, "wb") as out:
+            total = int(r.headers.get("Content-Length") or 0)
+            done = 0
+            while chunk := r.read(1 << 20):
+                out.write(chunk)
+                done += len(chunk)
+                if total:
+                    print(f"\r  {done * 100 // total}%", end="", flush=True)
+        print()
+        os.replace(tmp, pkg)
+    print("Unpacking...")
+    with zipfile.ZipFile(pkg) as z:
+        names = z.namelist()
+        run = next(n for n in names if n.endswith("run.exe"))
+        prefix = run[: -len("run.exe")]
+        for n in names:
+            if not n.startswith(prefix) or n.endswith("/"):
+                continue
+            dest = os.path.join(VOICEVOX_DIR, *n[len(prefix):].split("/"))
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            with z.open(n) as src_f, open(dest, "wb") as out:
+                shutil.copyfileobj(src_f, out, 1 << 20)
+    os.remove(pkg)
+    print("Starting it once to check...")
+    ensure_voicevox()
+    print("Installed. Voices: " + ", ".join(VOICEVOX_VOICES) + "\nPick one: finished set voice metan-sexy")
+    return 0
+
+
+ENGINES = {"kokoro": synth_kokoro, "edge": synth_edge, "sapi": synth_sapi, "voicevox": synth_voicevox}
 
 
 def synth(text, name, cfg):
@@ -474,7 +658,8 @@ def speak(parts, cfg, main=None, phrase=None):
             continue
         is_phrase = phrase is not None and text == short_text(phrase, cfg["max_words"])
         code = lang or (cfg["language"] if cfg["language"] in LANGS else detect(text, cfg))
-        if not is_phrase and cfg.get("speak") == "main" and code != main_lang:
+        reads_it = code == main_lang or (VOICES[main].get("latin") and code == "en")
+        if not is_phrase and cfg.get("speak") == "main" and not reads_it:
             if said_phrase or not phrase:
                 continue
             text = short_text(phrase, cfg["max_words"])
@@ -600,7 +785,8 @@ def spawn(job):
 def mcp_tools():
     cfg = load_cfg()
     if cfg.get("speak") == "main":  # only the main voice's language is read aloud
-        rule = f"Write it in {lang_name(VOICES[cfg['voice']]['lang'])}."
+        mv = VOICES[cfg["voice"]]
+        rule = "Write it in English." if mv.get("latin") else f"Write it in {lang_name(mv['lang'])}."
     elif cfg["language"] in LANGS:
         rule = f"Write it in {lang_name(cfg['language'])}."
     elif cfg["detect"] != "all" and cfg["detect"]:
@@ -723,6 +909,7 @@ HELP = """finished - tell the user an agent is done (notification + voice)
                                        (every changed file is backed up first)
   finished unregister [all|AGENT]      remove all of that again
   finished hook claude|codex|NAME      what agents run when a turn ends (--dry = print only)
+  finished voicevox install|start|stop  anime voices (VOICEVOX, about 1.9 GB, runs locally)
   finished mcp                         MCP server (tool notify_finished)
 """
 
@@ -735,7 +922,7 @@ def describe(name, cur):
 
 def voice_filter(args):
     if not args:
-        return [n for n, v in VOICES.items() if v["lang"] == "en"]
+        return [n for n, v in VOICES.items() if v["lang"] == "en" or v["engine"] == "voicevox"]
     picked = []
     for a in args:
         a = a.lower()
@@ -744,7 +931,7 @@ def voice_filter(args):
         elif a == "all":
             picked += list(VOICES)
         elif a == "anime":
-            picked += [n for n, v in VOICES.items() if v.get("tag") == "anime"]
+            picked += [n for n, v in VOICES.items() if v["engine"] == "voicevox"]
         elif a == "sexy":
             picked += [n for n, v in VOICES.items() if v.get("tag") in ("sexy", "anime") and v["g"] == "f"]
         elif a in ("female", "women"):
@@ -764,9 +951,10 @@ def cmd_voices(args, cfg):
     names = voice_filter(args)
     cur = cfg["voice"]
     if not args:
-        groups = [("Anime and sexy women (local)", lambda v: v["g"] == "f" and v["engine"] == "kokoro" and v.get("tag")),
-                  ("Other women (local)", lambda v: v["g"] == "f" and v["engine"] == "kokoro" and not v.get("tag")),
-                  ("Men (local)", lambda v: v["g"] == "m" and v["engine"] == "kokoro"),
+        groups = [("Anime girls (VOICEVOX, local)", lambda v: v["engine"] == "voicevox" and v["g"] == "f"),
+                  ("Anime men (VOICEVOX, local)", lambda v: v["engine"] == "voicevox" and v["g"] == "m"),
+                  ("Women (Kokoro, local)", lambda v: v["g"] == "f" and v["engine"] == "kokoro"),
+                  ("Men (Kokoro, local)", lambda v: v["g"] == "m" and v["engine"] == "kokoro"),
                   ("Online (internet)", lambda v: v["engine"] == "edge"),
                   ("Windows (offline, robotic)", lambda v: v["engine"] == "sapi")]
         for title, test in groups:
@@ -775,6 +963,8 @@ def cmd_voices(args, cfg):
                 if test(VOICES[n]):
                     print(describe(n, cur))
         others = len(VOICES) - len(names)
+        if not voicevox_installed():
+            print("\nAnime voices (VOICEVOX): finished voicevox install")
         print(f"\n+ {others} voices in {len(LANGS) - 1} other languages: finished voices CODE (see finished languages)")
     else:
         lang = None
@@ -901,7 +1091,7 @@ def set_value(cfg, key, val):
 
 def cmd_set(args, cfg):
     if len(args) < 2:
-        print("Example: finished set voice anime-sexy")
+        print("Example: finished set voice metan-sexy")
         return 1
     err = set_value(cfg, args[0], " ".join(args[1:]))
     if err:
@@ -922,7 +1112,7 @@ def ask(prompt):
 
 
 def cmd_setup(cfg):
-    names = [n for n, v in VOICES.items() if v["lang"] == "en"]
+    names = [n for n, v in VOICES.items() if v["engine"] == "voicevox"] + [n for n, v in VOICES.items() if v["lang"] == "en"]
     print("1/4  Main voice")
     while True:
         for i, n in enumerate(names, 1):
@@ -1005,6 +1195,17 @@ def main(argv):
         return agents.connect(rest, remove=cmd == "unregister")
     if cmd == "detect":
         return cmd_detect(rest, cfg)
+    if cmd == "voicevox":
+        sub = rest[0] if rest else "status"
+        if sub == "install":
+            return install_voicevox()
+        if sub == "start":
+            ensure_voicevox()
+        elif sub == "stop":
+            stop_voicevox()
+        print(f"VOICEVOX: {'installed' if voicevox_installed() else 'not installed'}, "
+              f"{'running' if voicevox_running() else 'not running'}")
+        return 0
     if cmd == "set":
         return cmd_set(rest, cfg)
     if cmd == "phrases":

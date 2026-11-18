@@ -14,7 +14,7 @@ import finished as f  # noqa: E402
 
 
 def cfg(**kw):
-    c = dict(f.DEFAULTS)
+    c = dict(f.DEFAULTS, voice="jp-soft")  # a Kokoro voice, so the tests run without VOICEVOX
     c.update(kw)
     return c
 
@@ -90,18 +90,18 @@ class DetectAllLanguages(unittest.TestCase):
 
 class Voices(unittest.TestCase):
     def test_main_voice_for_its_language(self):
-        self.assertEqual(f.voice_for("en", cfg(), "anime-sexy"), "anime-sexy")
+        self.assertEqual(f.voice_for("en", cfg(), "jp-soft"), "jp-soft")
 
     def test_native_voice_same_gender(self):
-        self.assertEqual(f.VOICES[f.voice_for("sr", cfg(), "anime-sexy")]["g"], "f")
+        self.assertEqual(f.VOICES[f.voice_for("sr", cfg(), "jp-soft")]["g"], "f")
         self.assertEqual(f.VOICES[f.voice_for("sr", cfg(), "deep")]["g"], "m")
         self.assertEqual(f.VOICES[f.voice_for("de", cfg(), "deep")]["lang"], "de")
 
     def test_chosen_voice_for_language(self):
-        self.assertEqual(f.voice_for("sr", cfg(lang_voices={"sr": "sr-nicholas"}), "anime-sexy"), "sr-nicholas")
+        self.assertEqual(f.voice_for("sr", cfg(lang_voices={"sr": "sr-nicholas"}), "jp-soft"), "sr-nicholas")
 
     def test_english_when_main_voice_is_foreign(self):
-        self.assertEqual(f.voice_for("en", cfg(voice="sr-sophie"), "sr-sophie"), "anime-sexy")
+        self.assertEqual(f.voice_for("en", cfg(voice="sr-sophie"), "sr-sophie"), f.EN_DEFAULT["f"])
 
     def test_offline_fallback(self):
         chain = f.fallback_chain("es-elvira", cfg())
@@ -167,23 +167,36 @@ class Speaking(unittest.TestCase):
 
     def test_english_only_says_phrase_for_other_languages(self):
         c = cfg(detect=["en", "sr"], speak="main", phrase="Finished, senpai!")
-        f.speak([("Završio sam login stranicu", None)], c, "anime-sexy", c["phrase"])
-        self.assertEqual(self.said, [("Finished, senpai!", "anime-sexy")])
+        f.speak([("Završio sam login stranicu", None)], c, "jp-soft", c["phrase"])
+        self.assertEqual(self.said, [("Finished, senpai!", "jp-soft")])
 
     def test_english_only_reads_english(self):
         c = cfg(detect=["en", "sr"], speak="main")
-        f.speak([("Login page fixed", None)], c, "anime-sexy", c["phrase"])
-        self.assertEqual(self.said, [("Login page fixed", "anime-sexy")])
+        f.speak([("Login page fixed", None)], c, "jp-soft", c["phrase"])
+        self.assertEqual(self.said, [("Login page fixed", "jp-soft")])
 
     def test_both_mode_does_not_repeat_phrase(self):
         c = cfg(detect=["en", "sr"], speak="main")
-        f.speak([("Finished", None), ("Završio sam login", None)], c, "anime-sexy", "Finished")
-        self.assertEqual(self.said, [("Finished", "anime-sexy")])
+        f.speak([("Finished", None), ("Završio sam login", None)], c, "jp-soft", "Finished")
+        self.assertEqual(self.said, [("Finished", "jp-soft")])
 
     def test_every_language_uses_native_voice(self):
         c = cfg(detect=["en", "sr"], speak="all")
-        f.speak([("Završio sam login stranicu", None)], c, "anime-sexy", "Finished")
+        f.speak([("Završio sam login stranicu", None)], c, "jp-soft", "Finished")
         self.assertEqual(self.said[0][1], "sr-sophie")
+
+    def test_anime_voice_reads_english_and_says_phrase_for_serbian(self):
+        f.VOICES["test-anime"] = dict(engine="voicevox", id="x/y", g="f", lang="ja", latin=True, d="")
+        try:
+            c = cfg(voice="test-anime", detect=["en", "sr"], speak="main", phrase="Finished")
+            f.speak([("Login page fixed", None)], c, "test-anime", "Finished")
+            f.speak([("Završio sam login stranicu", None)], c, "test-anime", "Finished")
+            f.speak([("ログイン完了", "ja")], c, "test-anime", "Finished")
+            self.assertEqual(self.said, [("Login page fixed", "test-anime"), ("Finished", "test-anime"),
+                                         ("ログイン完了", "test-anime")])
+            self.assertEqual(f.detect("Done", c), "en")
+        finally:
+            del f.VOICES["test-anime"]
 
     def test_silent_when_quit(self):
         old = f.load_cfg
