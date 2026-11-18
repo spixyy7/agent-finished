@@ -1,0 +1,1492 @@
+{
+ "af": {
+  "name": "Afrikaans",
+  "locale": "af-ZA",
+  "detect": true,
+  "lingua": "af",
+  "voices": [
+   {
+    "name": "af-adri",
+    "id": "af-ZA-AdriNeural",
+    "g": "f"
+   },
+   {
+    "name": "af-willem",
+    "id": "af-ZA-WillemNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "am": {
+  "name": "Amharic",
+  "locale": "am-ET",
+  "detect": false,
+  "lingua": "am",
+  "voices": [
+   {
+    "name": "am-ameha",
+    "id": "am-ET-AmehaNeural",
+    "g": "m"
+   },
+   {
+    "name": "am-mekdes",
+    "id": "am-ET-MekdesNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ar": {
+  "name": "Arabic",
+  "locale": "ar-SA",
+  "detect": true,
+  "lingua": "ar",
+  "voices": [
+   {
+    "name": "ar-hamed",
+    "id": "ar-SA-HamedNeural",
+    "g": "m"
+   },
+   {
+    "name": "ar-zariyah",
+    "id": "ar-SA-ZariyahNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "az": {
+  "name": "Azerbaijani",
+  "locale": "az-AZ",
+  "detect": true,
+  "lingua": "az",
+  "voices": [
+   {
+    "name": "az-babek",
+    "id": "az-AZ-BabekNeural",
+    "g": "m"
+   },
+   {
+    "name": "az-banu",
+    "id": "az-AZ-BanuNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "bg": {
+  "name": "Bulgarian",
+  "locale": "bg-BG",
+  "detect": true,
+  "lingua": "bg",
+  "voices": [
+   {
+    "name": "bg-borislav",
+    "id": "bg-BG-BorislavNeural",
+    "g": "m"
+   },
+   {
+    "name": "bg-kalina",
+    "id": "bg-BG-KalinaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "bn": {
+  "name": "Bangla",
+  "locale": "bn-BD",
+  "detect": true,
+  "lingua": "bn",
+  "voices": [
+   {
+    "name": "bn-nabanita",
+    "id": "bn-BD-NabanitaNeural",
+    "g": "f"
+   },
+   {
+    "name": "bn-pradeep",
+    "id": "bn-BD-PradeepNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "bs": {
+  "name": "Bosnian",
+  "locale": "bs-BA",
+  "detect": true,
+  "lingua": "bs",
+  "voices": [
+   {
+    "name": "bs-goran",
+    "id": "bs-BA-GoranNeural",
+    "g": "m"
+   },
+   {
+    "name": "bs-vesna",
+    "id": "bs-BA-VesnaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ca": {
+  "name": "Catalan",
+  "locale": "ca-ES",
+  "detect": true,
+  "lingua": "ca",
+  "voices": [
+   {
+    "name": "ca-enric",
+    "id": "ca-ES-EnricNeural",
+    "g": "m"
+   },
+   {
+    "name": "ca-joana",
+    "id": "ca-ES-JoanaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "cs": {
+  "name": "Czech",
+  "locale": "cs-CZ",
+  "detect": true,
+  "lingua": "cs",
+  "voices": [
+   {
+    "name": "cs-antonin",
+    "id": "cs-CZ-AntoninNeural",
+    "g": "m"
+   },
+   {
+    "name": "cs-vlasta",
+    "id": "cs-CZ-VlastaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "cy": {
+  "name": "Welsh",
+  "locale": "cy-GB",
+  "detect": true,
+  "lingua": "cy",
+  "voices": [
+   {
+    "name": "cy-aled",
+    "id": "cy-GB-AledNeural",
+    "g": "m"
+   },
+   {
+    "name": "cy-nia",
+    "id": "cy-GB-NiaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "da": {
+  "name": "Danish",
+  "locale": "da-DK",
+  "detect": true,
+  "lingua": "da",
+  "voices": [
+   {
+    "name": "da-christel",
+    "id": "da-DK-ChristelNeural",
+    "g": "f"
+   },
+   {
+    "name": "da-jeppe",
+    "id": "da-DK-JeppeNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "de": {
+  "name": "German",
+  "locale": "de-DE",
+  "detect": true,
+  "lingua": "de",
+  "voices": [
+   {
+    "name": "de-christoph",
+    "id": "de-DE-ChristophNeural",
+    "g": "m"
+   },
+   {
+    "name": "de-tanja",
+    "id": "de-DE-TanjaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "el": {
+  "name": "Greek",
+  "locale": "el-GR",
+  "detect": true,
+  "lingua": "el",
+  "voices": [
+   {
+    "name": "el-athina",
+    "id": "el-GR-AthinaNeural",
+    "g": "f"
+   },
+   {
+    "name": "el-nestoras",
+    "id": "el-GR-NestorasNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "en": {
+  "name": "English",
+  "locale": "en-US",
+  "detect": true,
+  "lingua": "en",
+  "voices": [
+   {
+    "name": "en-andrew",
+    "id": "en-US-AndrewMultilingualNeural",
+    "g": "m"
+   },
+   {
+    "name": "en-ava",
+    "id": "en-US-AvaMultilingualNeural",
+    "g": "f"
+   },
+   {
+    "name": "en-brian",
+    "id": "en-US-BrianMultilingualNeural",
+    "g": "m"
+   },
+   {
+    "name": "en-emma",
+    "id": "en-US-EmmaMultilingualNeural",
+    "g": "f"
+   },
+   {
+    "name": "en-ana",
+    "id": "en-US-AnaNeural",
+    "g": "f"
+   },
+   {
+    "name": "en-andrew-classic",
+    "id": "en-US-AndrewNeural",
+    "g": "m"
+   },
+   {
+    "name": "en-aria",
+    "id": "en-US-AriaNeural",
+    "g": "f"
+   },
+   {
+    "name": "en-ava-classic",
+    "id": "en-US-AvaNeural",
+    "g": "f"
+   },
+   {
+    "name": "en-brian-classic",
+    "id": "en-US-BrianNeural",
+    "g": "m"
+   },
+   {
+    "name": "en-christopher",
+    "id": "en-US-ChristopherNeural",
+    "g": "m"
+   },
+   {
+    "name": "en-emma-classic",
+    "id": "en-US-EmmaNeural",
+    "g": "f"
+   },
+   {
+    "name": "en-eric",
+    "id": "en-US-EricNeural",
+    "g": "m"
+   },
+   {
+    "name": "en-guy",
+    "id": "en-US-GuyNeural",
+    "g": "m"
+   },
+   {
+    "name": "en-jenny",
+    "id": "en-US-JennyNeural",
+    "g": "f"
+   },
+   {
+    "name": "en-michelle",
+    "id": "en-US-MichelleNeural",
+    "g": "f"
+   },
+   {
+    "name": "en-roger",
+    "id": "en-US-RogerNeural",
+    "g": "m"
+   },
+   {
+    "name": "en-steffan",
+    "id": "en-US-SteffanNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "es": {
+  "name": "Spanish",
+  "locale": "es-ES",
+  "detect": true,
+  "lingua": "es",
+  "voices": [
+   {
+    "name": "es-alvaro",
+    "id": "es-ES-AlvaroNeural",
+    "g": "m"
+   },
+   {
+    "name": "es-elvira",
+    "id": "es-ES-ElviraNeural",
+    "g": "f"
+   },
+   {
+    "name": "es-ximena",
+    "id": "es-ES-XimenaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "et": {
+  "name": "Estonian",
+  "locale": "et-EE",
+  "detect": true,
+  "lingua": "et",
+  "voices": [
+   {
+    "name": "et-anu",
+    "id": "et-EE-AnuNeural",
+    "g": "f"
+   },
+   {
+    "name": "et-kert",
+    "id": "et-EE-KertNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "fa": {
+  "name": "Persian",
+  "locale": "fa-IR",
+  "detect": true,
+  "lingua": "fa",
+  "voices": [
+   {
+    "name": "fa-dilara",
+    "id": "fa-IR-DilaraNeural",
+    "g": "f"
+   },
+   {
+    "name": "fa-farid",
+    "id": "fa-IR-FaridNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "fi": {
+  "name": "Finnish",
+  "locale": "fi-FI",
+  "detect": true,
+  "lingua": "fi",
+  "voices": [
+   {
+    "name": "fi-harri",
+    "id": "fi-FI-HarriNeural",
+    "g": "m"
+   },
+   {
+    "name": "fi-noora",
+    "id": "fi-FI-NooraNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "fil": {
+  "name": "Filipino",
+  "locale": "fil-PH",
+  "detect": true,
+  "lingua": "tl",
+  "voices": [
+   {
+    "name": "fil-angelo",
+    "id": "fil-PH-AngeloNeural",
+    "g": "m"
+   },
+   {
+    "name": "fil-blessica",
+    "id": "fil-PH-BlessicaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "fr": {
+  "name": "French",
+  "locale": "fr-FR",
+  "detect": true,
+  "lingua": "fr",
+  "voices": [
+   {
+    "name": "fr-remy",
+    "id": "fr-FR-RemyMultilingualNeural",
+    "g": "m"
+   },
+   {
+    "name": "fr-vivienne",
+    "id": "fr-FR-VivienneMultilingualNeural",
+    "g": "f"
+   },
+   {
+    "name": "fr-denise",
+    "id": "fr-FR-DeniseNeural",
+    "g": "f"
+   },
+   {
+    "name": "fr-eloise",
+    "id": "fr-FR-EloiseNeural",
+    "g": "f"
+   },
+   {
+    "name": "fr-henri",
+    "id": "fr-FR-HenriNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "ga": {
+  "name": "Irish",
+  "locale": "ga-IE",
+  "detect": true,
+  "lingua": "ga",
+  "voices": [
+   {
+    "name": "ga-colm",
+    "id": "ga-IE-ColmNeural",
+    "g": "m"
+   },
+   {
+    "name": "ga-orla",
+    "id": "ga-IE-OrlaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "gl": {
+  "name": "Galician",
+  "locale": "gl-ES",
+  "detect": false,
+  "lingua": "gl",
+  "voices": [
+   {
+    "name": "gl-roi",
+    "id": "gl-ES-RoiNeural",
+    "g": "m"
+   },
+   {
+    "name": "gl-sabela",
+    "id": "gl-ES-SabelaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "gu": {
+  "name": "Gujarati",
+  "locale": "gu-IN",
+  "detect": true,
+  "lingua": "gu",
+  "voices": [
+   {
+    "name": "gu-dhwani",
+    "id": "gu-IN-DhwaniNeural",
+    "g": "f"
+   },
+   {
+    "name": "gu-niranjan",
+    "id": "gu-IN-NiranjanNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "he": {
+  "name": "Hebrew",
+  "locale": "he-IL",
+  "detect": true,
+  "lingua": "he",
+  "voices": [
+   {
+    "name": "he-avri",
+    "id": "he-IL-AvriNeural",
+    "g": "m"
+   },
+   {
+    "name": "he-hila",
+    "id": "he-IL-HilaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "hi": {
+  "name": "Hindi",
+  "locale": "hi-IN",
+  "detect": true,
+  "lingua": "hi",
+  "voices": [
+   {
+    "name": "hi-madhur",
+    "id": "hi-IN-MadhurNeural",
+    "g": "m"
+   },
+   {
+    "name": "hi-swara",
+    "id": "hi-IN-SwaraNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "hr": {
+  "name": "Croatian",
+  "locale": "hr-HR",
+  "detect": true,
+  "lingua": "hr",
+  "voices": [
+   {
+    "name": "hr-gabrijela",
+    "id": "hr-HR-GabrijelaNeural",
+    "g": "f"
+   },
+   {
+    "name": "hr-srecko",
+    "id": "hr-HR-SreckoNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "hu": {
+  "name": "Hungarian",
+  "locale": "hu-HU",
+  "detect": true,
+  "lingua": "hu",
+  "voices": [
+   {
+    "name": "hu-noemi",
+    "id": "hu-HU-NoemiNeural",
+    "g": "f"
+   },
+   {
+    "name": "hu-tamas",
+    "id": "hu-HU-TamasNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "id": {
+  "name": "Indonesian",
+  "locale": "id-ID",
+  "detect": true,
+  "lingua": "id",
+  "voices": [
+   {
+    "name": "id-ardi",
+    "id": "id-ID-ArdiNeural",
+    "g": "m"
+   },
+   {
+    "name": "id-gadis",
+    "id": "id-ID-GadisNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "is": {
+  "name": "Icelandic",
+  "locale": "is-IS",
+  "detect": true,
+  "lingua": "is",
+  "voices": [
+   {
+    "name": "is-gudrun",
+    "id": "is-IS-GudrunNeural",
+    "g": "f"
+   },
+   {
+    "name": "is-gunnar",
+    "id": "is-IS-GunnarNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "it": {
+  "name": "Italian",
+  "locale": "it-IT",
+  "detect": true,
+  "lingua": "it",
+  "voices": [
+   {
+    "name": "it-giuseppe",
+    "id": "it-IT-GiuseppeMultilingualNeural",
+    "g": "m"
+   },
+   {
+    "name": "it-diego",
+    "id": "it-IT-DiegoNeural",
+    "g": "m"
+   },
+   {
+    "name": "it-elsa",
+    "id": "it-IT-ElsaNeural",
+    "g": "f"
+   },
+   {
+    "name": "it-isabella",
+    "id": "it-IT-IsabellaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "iu": {
+  "name": "Inuktitut",
+  "locale": "iu-Cans-CA",
+  "detect": false,
+  "lingua": "iu",
+  "voices": [
+   {
+    "name": "iu-ca-siqiniq",
+    "id": "iu-Cans-CA-SiqiniqNeural",
+    "g": "f"
+   },
+   {
+    "name": "iu-ca-taqqiq",
+    "id": "iu-Cans-CA-TaqqiqNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "ja": {
+  "name": "Japanese",
+  "locale": "ja-JP",
+  "detect": true,
+  "lingua": "ja",
+  "voices": [
+   {
+    "name": "ja-keita",
+    "id": "ja-JP-KeitaNeural",
+    "g": "m"
+   },
+   {
+    "name": "ja-nanami",
+    "id": "ja-JP-NanamiNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "jv": {
+  "name": "Javanese",
+  "locale": "jv-ID",
+  "detect": false,
+  "lingua": "jv",
+  "voices": [
+   {
+    "name": "jv-dimas",
+    "id": "jv-ID-DimasNeural",
+    "g": "m"
+   },
+   {
+    "name": "jv-siti",
+    "id": "jv-ID-SitiNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ka": {
+  "name": "Georgian",
+  "locale": "ka-GE",
+  "detect": true,
+  "lingua": "ka",
+  "voices": [
+   {
+    "name": "ka-eka",
+    "id": "ka-GE-EkaNeural",
+    "g": "f"
+   },
+   {
+    "name": "ka-giorgi",
+    "id": "ka-GE-GiorgiNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "kk": {
+  "name": "Kazakh",
+  "locale": "kk-KZ",
+  "detect": true,
+  "lingua": "kk",
+  "voices": [
+   {
+    "name": "kk-aigul",
+    "id": "kk-KZ-AigulNeural",
+    "g": "f"
+   },
+   {
+    "name": "kk-daulet",
+    "id": "kk-KZ-DauletNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "km": {
+  "name": "Khmer",
+  "locale": "km-KH",
+  "detect": false,
+  "lingua": "km",
+  "voices": [
+   {
+    "name": "km-piseth",
+    "id": "km-KH-PisethNeural",
+    "g": "m"
+   },
+   {
+    "name": "km-sreymom",
+    "id": "km-KH-SreymomNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "kn": {
+  "name": "Kannada",
+  "locale": "kn-IN",
+  "detect": false,
+  "lingua": "kn",
+  "voices": [
+   {
+    "name": "kn-gagan",
+    "id": "kn-IN-GaganNeural",
+    "g": "m"
+   },
+   {
+    "name": "kn-sapna",
+    "id": "kn-IN-SapnaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ko": {
+  "name": "Korean",
+  "locale": "ko-KR",
+  "detect": true,
+  "lingua": "ko",
+  "voices": [
+   {
+    "name": "ko-hyunsu",
+    "id": "ko-KR-HyunsuMultilingualNeural",
+    "g": "m"
+   },
+   {
+    "name": "ko-injoon",
+    "id": "ko-KR-InJoonNeural",
+    "g": "m"
+   },
+   {
+    "name": "ko-sunhi",
+    "id": "ko-KR-SunHiNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "lo": {
+  "name": "Lao",
+  "locale": "lo-LA",
+  "detect": false,
+  "lingua": "lo",
+  "voices": [
+   {
+    "name": "lo-chanthavong",
+    "id": "lo-LA-ChanthavongNeural",
+    "g": "m"
+   },
+   {
+    "name": "lo-keomany",
+    "id": "lo-LA-KeomanyNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "lt": {
+  "name": "Lithuanian",
+  "locale": "lt-LT",
+  "detect": true,
+  "lingua": "lt",
+  "voices": [
+   {
+    "name": "lt-leonas",
+    "id": "lt-LT-LeonasNeural",
+    "g": "m"
+   },
+   {
+    "name": "lt-ona",
+    "id": "lt-LT-OnaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "lv": {
+  "name": "Latvian",
+  "locale": "lv-LV",
+  "detect": true,
+  "lingua": "lv",
+  "voices": [
+   {
+    "name": "lv-everita",
+    "id": "lv-LV-EveritaNeural",
+    "g": "f"
+   },
+   {
+    "name": "lv-nils",
+    "id": "lv-LV-NilsNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "mk": {
+  "name": "Macedonian",
+  "locale": "mk-MK",
+  "detect": true,
+  "lingua": "mk",
+  "voices": [
+   {
+    "name": "mk-aleksandar",
+    "id": "mk-MK-AleksandarNeural",
+    "g": "m"
+   },
+   {
+    "name": "mk-marija",
+    "id": "mk-MK-MarijaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ml": {
+  "name": "Malayalam",
+  "locale": "ml-IN",
+  "detect": false,
+  "lingua": "ml",
+  "voices": [
+   {
+    "name": "ml-midhun",
+    "id": "ml-IN-MidhunNeural",
+    "g": "m"
+   },
+   {
+    "name": "ml-sobhana",
+    "id": "ml-IN-SobhanaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "mn": {
+  "name": "Mongolian",
+  "locale": "mn-MN",
+  "detect": true,
+  "lingua": "mn",
+  "voices": [
+   {
+    "name": "mn-bataa",
+    "id": "mn-MN-BataaNeural",
+    "g": "m"
+   },
+   {
+    "name": "mn-yesui",
+    "id": "mn-MN-YesuiNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "mr": {
+  "name": "Marathi",
+  "locale": "mr-IN",
+  "detect": true,
+  "lingua": "mr",
+  "voices": [
+   {
+    "name": "mr-aarohi",
+    "id": "mr-IN-AarohiNeural",
+    "g": "f"
+   },
+   {
+    "name": "mr-manohar",
+    "id": "mr-IN-ManoharNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "ms": {
+  "name": "Malay",
+  "locale": "ms-MY",
+  "detect": true,
+  "lingua": "ms",
+  "voices": [
+   {
+    "name": "ms-osman",
+    "id": "ms-MY-OsmanNeural",
+    "g": "m"
+   },
+   {
+    "name": "ms-yasmin",
+    "id": "ms-MY-YasminNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "mt": {
+  "name": "Maltese",
+  "locale": "mt-MT",
+  "detect": false,
+  "lingua": "mt",
+  "voices": [
+   {
+    "name": "mt-grace",
+    "id": "mt-MT-GraceNeural",
+    "g": "f"
+   },
+   {
+    "name": "mt-joseph",
+    "id": "mt-MT-JosephNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "my": {
+  "name": "Burmese",
+  "locale": "my-MM",
+  "detect": false,
+  "lingua": "my",
+  "voices": [
+   {
+    "name": "my-nilar",
+    "id": "my-MM-NilarNeural",
+    "g": "f"
+   },
+   {
+    "name": "my-thiha",
+    "id": "my-MM-ThihaNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "nb": {
+  "name": "Norwegian",
+  "locale": "nb-NO",
+  "detect": true,
+  "lingua": "nb",
+  "voices": [
+   {
+    "name": "nb-finn",
+    "id": "nb-NO-FinnNeural",
+    "g": "m"
+   },
+   {
+    "name": "nb-pernille",
+    "id": "nb-NO-PernilleNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ne": {
+  "name": "Nepali",
+  "locale": "ne-NP",
+  "detect": false,
+  "lingua": "ne",
+  "voices": [
+   {
+    "name": "ne-hemkala",
+    "id": "ne-NP-HemkalaNeural",
+    "g": "f"
+   },
+   {
+    "name": "ne-sagar",
+    "id": "ne-NP-SagarNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "nl": {
+  "name": "Dutch",
+  "locale": "nl-NL",
+  "detect": true,
+  "lingua": "nl",
+  "voices": [
+   {
+    "name": "nl-colette",
+    "id": "nl-NL-ColetteNeural",
+    "g": "f"
+   },
+   {
+    "name": "nl-fenna",
+    "id": "nl-NL-FennaNeural",
+    "g": "f"
+   },
+   {
+    "name": "nl-maarten",
+    "id": "nl-NL-MaartenNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "pl": {
+  "name": "Polish",
+  "locale": "pl-PL",
+  "detect": true,
+  "lingua": "pl",
+  "voices": [
+   {
+    "name": "pl-marek",
+    "id": "pl-PL-MarekNeural",
+    "g": "m"
+   },
+   {
+    "name": "pl-zofia",
+    "id": "pl-PL-ZofiaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ps": {
+  "name": "Pashto",
+  "locale": "ps-AF",
+  "detect": false,
+  "lingua": "ps",
+  "voices": [
+   {
+    "name": "ps-gulnawaz",
+    "id": "ps-AF-GulNawazNeural",
+    "g": "m"
+   },
+   {
+    "name": "ps-latifa",
+    "id": "ps-AF-LatifaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "pt": {
+  "name": "Portuguese",
+  "locale": "pt-BR",
+  "detect": true,
+  "lingua": "pt",
+  "voices": [
+   {
+    "name": "pt-thalita",
+    "id": "pt-BR-ThalitaMultilingualNeural",
+    "g": "f"
+   },
+   {
+    "name": "pt-antonio",
+    "id": "pt-BR-AntonioNeural",
+    "g": "m"
+   },
+   {
+    "name": "pt-francisca",
+    "id": "pt-BR-FranciscaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ro": {
+  "name": "Romanian",
+  "locale": "ro-RO",
+  "detect": true,
+  "lingua": "ro",
+  "voices": [
+   {
+    "name": "ro-alina",
+    "id": "ro-RO-AlinaNeural",
+    "g": "f"
+   },
+   {
+    "name": "ro-emil",
+    "id": "ro-RO-EmilNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "ru": {
+  "name": "Russian",
+  "locale": "ru-RU",
+  "detect": true,
+  "lingua": "ru",
+  "voices": [
+   {
+    "name": "ru-dmitry",
+    "id": "ru-RU-DmitryNeural",
+    "g": "m"
+   },
+   {
+    "name": "ru-svetlana",
+    "id": "ru-RU-SvetlanaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "si": {
+  "name": "Sinhala",
+  "locale": "si-LK",
+  "detect": false,
+  "lingua": "si",
+  "voices": [
+   {
+    "name": "si-sameera",
+    "id": "si-LK-SameeraNeural",
+    "g": "m"
+   },
+   {
+    "name": "si-thilini",
+    "id": "si-LK-ThiliniNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "sk": {
+  "name": "Slovak",
+  "locale": "sk-SK",
+  "detect": true,
+  "lingua": "sk",
+  "voices": [
+   {
+    "name": "sk-lukas",
+    "id": "sk-SK-LukasNeural",
+    "g": "m"
+   },
+   {
+    "name": "sk-viktoria",
+    "id": "sk-SK-ViktoriaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "sl": {
+  "name": "Slovenian",
+  "locale": "sl-SI",
+  "detect": true,
+  "lingua": "sl",
+  "voices": [
+   {
+    "name": "sl-petra",
+    "id": "sl-SI-PetraNeural",
+    "g": "f"
+   },
+   {
+    "name": "sl-rok",
+    "id": "sl-SI-RokNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "so": {
+  "name": "Somali",
+  "locale": "so-SO",
+  "detect": true,
+  "lingua": "so",
+  "voices": [
+   {
+    "name": "so-muuse",
+    "id": "so-SO-MuuseNeural",
+    "g": "m"
+   },
+   {
+    "name": "so-ubax",
+    "id": "so-SO-UbaxNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "sq": {
+  "name": "Albanian",
+  "locale": "sq-AL",
+  "detect": true,
+  "lingua": "sq",
+  "voices": [
+   {
+    "name": "sq-anila",
+    "id": "sq-AL-AnilaNeural",
+    "g": "f"
+   },
+   {
+    "name": "sq-ilir",
+    "id": "sq-AL-IlirNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "sr": {
+  "name": "Serbian",
+  "locale": "sr-RS",
+  "detect": true,
+  "lingua": "sr",
+  "voices": [
+   {
+    "name": "sr-nicholas",
+    "id": "sr-RS-NicholasNeural",
+    "g": "m"
+   },
+   {
+    "name": "sr-sophie",
+    "id": "sr-RS-SophieNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "su": {
+  "name": "Sundanese",
+  "locale": "su-ID",
+  "detect": false,
+  "lingua": "su",
+  "voices": [
+   {
+    "name": "su-jajang",
+    "id": "su-ID-JajangNeural",
+    "g": "m"
+   },
+   {
+    "name": "su-tuti",
+    "id": "su-ID-TutiNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "sv": {
+  "name": "Swedish",
+  "locale": "sv-SE",
+  "detect": true,
+  "lingua": "sv",
+  "voices": [
+   {
+    "name": "sv-mattias",
+    "id": "sv-SE-MattiasNeural",
+    "g": "m"
+   },
+   {
+    "name": "sv-sofie",
+    "id": "sv-SE-SofieNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "sw": {
+  "name": "Swahili",
+  "locale": "sw-KE",
+  "detect": true,
+  "lingua": "sw",
+  "voices": [
+   {
+    "name": "sw-rafiki",
+    "id": "sw-KE-RafikiNeural",
+    "g": "m"
+   },
+   {
+    "name": "sw-zuri",
+    "id": "sw-KE-ZuriNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ta": {
+  "name": "Tamil",
+  "locale": "ta-IN",
+  "detect": true,
+  "lingua": "ta",
+  "voices": [
+   {
+    "name": "ta-pallavi",
+    "id": "ta-IN-PallaviNeural",
+    "g": "f"
+   },
+   {
+    "name": "ta-valluvar",
+    "id": "ta-IN-ValluvarNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "te": {
+  "name": "Telugu",
+  "locale": "te-IN",
+  "detect": true,
+  "lingua": "te",
+  "voices": [
+   {
+    "name": "te-mohan",
+    "id": "te-IN-MohanNeural",
+    "g": "m"
+   },
+   {
+    "name": "te-shruti",
+    "id": "te-IN-ShrutiNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "th": {
+  "name": "Thai",
+  "locale": "th-TH",
+  "detect": true,
+  "lingua": "th",
+  "voices": [
+   {
+    "name": "th-niwat",
+    "id": "th-TH-NiwatNeural",
+    "g": "m"
+   },
+   {
+    "name": "th-premwadee",
+    "id": "th-TH-PremwadeeNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "tr": {
+  "name": "Turkish",
+  "locale": "tr-TR",
+  "detect": true,
+  "lingua": "tr",
+  "voices": [
+   {
+    "name": "tr-ahmet",
+    "id": "tr-TR-AhmetNeural",
+    "g": "m"
+   },
+   {
+    "name": "tr-emel",
+    "id": "tr-TR-EmelNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "uk": {
+  "name": "Ukrainian",
+  "locale": "uk-UA",
+  "detect": true,
+  "lingua": "uk",
+  "voices": [
+   {
+    "name": "uk-ostap",
+    "id": "uk-UA-OstapNeural",
+    "g": "m"
+   },
+   {
+    "name": "uk-polina",
+    "id": "uk-UA-PolinaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "ur": {
+  "name": "Urdu",
+  "locale": "ur-PK",
+  "detect": true,
+  "lingua": "ur",
+  "voices": [
+   {
+    "name": "ur-asad",
+    "id": "ur-PK-AsadNeural",
+    "g": "m"
+   },
+   {
+    "name": "ur-uzma",
+    "id": "ur-PK-UzmaNeural",
+    "g": "f"
+   }
+  ]
+ },
+ "uz": {
+  "name": "Uzbek",
+  "locale": "uz-UZ",
+  "detect": false,
+  "lingua": "uz",
+  "voices": [
+   {
+    "name": "uz-madina",
+    "id": "uz-UZ-MadinaNeural",
+    "g": "f"
+   },
+   {
+    "name": "uz-sardor",
+    "id": "uz-UZ-SardorNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "vi": {
+  "name": "Vietnamese",
+  "locale": "vi-VN",
+  "detect": true,
+  "lingua": "vi",
+  "voices": [
+   {
+    "name": "vi-hoaimy",
+    "id": "vi-VN-HoaiMyNeural",
+    "g": "f"
+   },
+   {
+    "name": "vi-namminh",
+    "id": "vi-VN-NamMinhNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "zh": {
+  "name": "Chinese",
+  "locale": "zh-CN",
+  "detect": true,
+  "lingua": "zh",
+  "voices": [
+   {
+    "name": "zh-xiaoxiao",
+    "id": "zh-CN-XiaoxiaoNeural",
+    "g": "f"
+   },
+   {
+    "name": "zh-xiaoyi",
+    "id": "zh-CN-XiaoyiNeural",
+    "g": "f"
+   },
+   {
+    "name": "zh-yunjian",
+    "id": "zh-CN-YunjianNeural",
+    "g": "m"
+   },
+   {
+    "name": "zh-yunxi",
+    "id": "zh-CN-YunxiNeural",
+    "g": "m"
+   },
+   {
+    "name": "zh-yunxia",
+    "id": "zh-CN-YunxiaNeural",
+    "g": "m"
+   },
+   {
+    "name": "zh-yunyang",
+    "id": "zh-CN-YunyangNeural",
+    "g": "m"
+   }
+  ]
+ },
+ "zu": {
+  "name": "Zulu",
+  "locale": "zu-ZA",
+  "detect": true,
+  "lingua": "zu",
+  "voices": [
+   {
+    "name": "zu-thando",
+    "id": "zu-ZA-ThandoNeural",
+    "g": "f"
+   },
+   {
+    "name": "zu-themba",
+    "id": "zu-ZA-ThembaNeural",
+    "g": "m"
+   }
+  ]
+ }
+}

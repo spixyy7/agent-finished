@@ -1,0 +1,6 @@
+.venv/
+models/
+cache/
+config.json
+__pycache__/
+*.part
