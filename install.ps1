@@ -1,19 +1,44 @@
 <#
 .SYNOPSIS
   Installs finished: Python environment, the Kokoro voice model, the `finished`
-  command, and with -Register the MCP tool in every agent found on this computer.
+  command, and connects the AI agents on this computer (required).
+
+.DESCRIPTION
+  finished only works when your agents call it, so connecting them is part of the
+  install, not an option. The installer asks once before it changes anything.
+  Use -Yes to agree up front (for scripts). Undo any time with: finished unregister
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File install.ps1 -Register
+  powershell -ExecutionPolicy Bypass -File install.ps1
 #>
 param(
-    [switch]$Register,
+    [switch]$Yes,
     [string]$BinDir = "$HOME\.local\bin"
 )
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $py = Join-Path $root '.venv\Scripts\python.exe'
+$script = Join-Path $root 'finished.py'
 $hasUv = [bool](Get-Command uv -ErrorAction SilentlyContinue)
+
+Write-Host ''
+Write-Host 'finished - your AI agents tell you when they are done, out loud' -ForegroundColor Magenta
+Write-Host ''
+Write-Host 'finished works by your agents calling it, so this install also connects them (required):'
+Write-Host '  - adds the notify_finished tool (MCP) to Claude Code, Codex, Gemini, Cursor, OpenCode, Grok, Qwen, Windsurf'
+Write-Host '  - turns on automatic notifications when a turn ends (Claude Code Stop hook, Codex notify;'
+Write-Host '    a notify program you already have keeps working, it is run right after)'
+Write-Host '  - adds one short rule to their global instructions (CLAUDE.md, AGENTS.md, GEMINI.md, ...)'
+Write-Host 'Only agents installed on this computer are touched. Every changed file is backed up first.'
+Write-Host 'Undo any time: finished unregister'
+Write-Host ''
+if (-not $Yes) {
+    $answer = Read-Host 'Install finished and connect your agents? [Y/n]'
+    if ($answer -match '^\s*(n|no)\s*$') {
+        Write-Host 'Stopped. finished needs your agents connected to work, so nothing was installed.' -ForegroundColor Yellow
+        exit 1
+    }
+}
 
 Write-Host '1/4  Python environment'
 if (-not (Test-Path $py)) {
@@ -41,7 +66,6 @@ foreach ($file in 'kokoro-v1.0.onnx', 'voices-v1.0.bin') {
 
 Write-Host '3/4  The finished command'
 New-Item -ItemType Directory -Force $BinDir | Out-Null
-$script = Join-Path $root 'finished.py'
 [IO.File]::WriteAllText((Join-Path $BinDir 'finished.cmd'), "@echo off`r`n`"$py`" `"$script`" %*`r`n")
 $sh = "#!/bin/sh`nexec `"$($py -replace '\\', '/')`" `"$($script -replace '\\', '/')`" `"`$@`"`n"
 [IO.File]::WriteAllText((Join-Path $BinDir 'finished'), $sh)
@@ -51,9 +75,9 @@ if (($userPath -split ';') -notcontains $BinDir) {
     Write-Host "     added $BinDir to your PATH - open a new terminal to use it"
 }
 
-Write-Host '4/4  Agents'
-if ($Register) { & $py $script register all }
-else { Write-Host '     run "finished register" to add the MCP tool to Claude Code, Codex, Gemini, Cursor, ...' }
+Write-Host '4/4  Connecting your agents'
+& $py $script register all
+if ($LASTEXITCODE) { throw 'Connecting the agents failed. Run "finished register" to try again.' }
 
 & $py $script -w -l en 'finished is installed'
-Write-Host 'Done. Try: finished setup'
+Write-Host 'Done. Restart your agents, then try: finished setup' -ForegroundColor Green

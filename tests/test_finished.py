@@ -153,5 +153,88 @@ class Mcp(unittest.TestCase):
         self.assertEqual(res[2]["error"]["code"], -32601)
 
 
+class Agents(unittest.TestCase):
+    """register / unregister on a made-up home folder: must add everything once and
+    leave every file byte-for-byte as it was after unregister."""
+
+    FILES = {
+        ".claude/settings.json": '{\n  "hooks": {\n    "Stop": [\n      {"hooks": [{"type": "command", "command": "other"}]}\n    ]\n  }\n}\n',
+        ".claude/CLAUDE.md": "# My rules\n\n- be brief\n",
+        ".codex/config.toml": 'model = "x"\nnotify = [ "node", "old-hook.mjs" ]\n\n[mcp_servers.other]\ncommand = "a"\nargs = ["b"]\n',
+        ".codex/AGENTS.md": "\nfirst line\r\nsecond line\r\n",  # mixed line endings
+        ".gemini/settings.json": "{}\n",
+        ".config/opencode/opencode.json": '{\n  "mcp": {\n    "servers": {}\n  }\n}\n',
+    }
+
+    def test_round_trip(self):
+        import contextlib
+        import io
+        import tempfile
+        import tomllib
+        import agents
+        with tempfile.TemporaryDirectory() as home:
+            for rel, text in self.FILES.items():
+                path = os.path.join(home, rel)
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w", encoding="utf-8", newline="") as fh:
+                    fh.write(text)
+            old_home, old_claude = agents.HOME_DIR, agents.mcp_add_claude
+            agents.HOME_DIR, agents.mcp_add_claude = home, (lambda remove=False: "skipped")
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    agents.connect(["all"])
+                    agents.connect(["all"])  # twice: nothing doubled
+                with open(os.path.join(home, ".codex/config.toml"), "rb") as fh:
+                    codex = tomllib.load(fh)
+                self.assertIn("finished.py", codex["notify"][1])
+                self.assertEqual(json.loads(codex["notify"][codex["notify"].index("--previous-notify") + 1]),
+                                 ["node", "old-hook.mjs"])
+                self.assertIn("finished", codex["mcp_servers"])
+                with open(os.path.join(home, ".claude/settings.json"), encoding="utf-8") as fh:
+                    self.assertEqual(len(json.load(fh)["hooks"]["Stop"]), 2)
+                with open(os.path.join(home, ".claude/CLAUDE.md"), encoding="utf-8") as fh:
+                    self.assertEqual(fh.read().count(agents.MARK_START), 1)
+                self.assertTrue(os.path.exists(os.path.join(home, ".gemini/GEMINI.md")))
+                with contextlib.redirect_stdout(io.StringIO()):
+                    agents.connect(["all"], remove=True)
+            finally:
+                agents.HOME_DIR, agents.mcp_add_claude = old_home, old_claude
+            for rel, text in self.FILES.items():
+                with open(os.path.join(home, rel), encoding="utf-8", newline="") as fh:
+                    if rel.endswith(".json"):  # rewritten with standard indenting, same content
+                        self.assertEqual(json.loads(fh.read()), json.loads(text), rel)
+                    else:  # text files: byte for byte
+                        self.assertEqual(fh.read(), text, rel)
+            self.assertFalse(os.path.exists(os.path.join(home, ".gemini/GEMINI.md")))
+
+    def test_first_sentence(self):
+        import agents
+        self.assertEqual(agents.first_sentence("## Done\n\n- Fixed the login bug. Then more.\n"), "Fixed the login bug.")
+        self.assertEqual(agents.first_sentence("```\ncode\n```\n3 tests fixed!"), "3 tests fixed!")
+
+    def test_claude_turn_sees_its_own_call(self):
+        import tempfile
+        import agents
+        lines = [
+            {"type": "user", "message": {"content": "old prompt"}},
+            {"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "mcp__finished__notify_finished"}]}},
+            {"type": "user", "message": {"content": "new prompt"}},
+            {"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "Bash"}]}},
+            {"type": "user", "message": {"content": [{"type": "tool_result", "content": "ok"}]}},
+            {"type": "assistant", "message": {"content": [{"type": "text", "text": "All fixed."}]}},
+        ]
+        with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8") as fh:
+            fh.write("\n".join(json.dumps(x) for x in lines))
+        try:
+            # the call belongs to the previous turn, so this turn still needs a notification
+            self.assertEqual(agents.claude_turn(fh.name), ("All fixed.", False))
+            with open(fh.name, "a", encoding="utf-8") as out:
+                out.write("\n" + json.dumps({"type": "assistant", "message": {"content": [
+                    {"type": "tool_use", "name": "mcp__finished__notify_finished"}]}}))
+            self.assertEqual(agents.claude_turn(fh.name), ("All fixed.", True))
+        finally:
+            os.remove(fh.name)
+
+
 if __name__ == "__main__":
     unittest.main()

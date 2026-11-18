@@ -28,7 +28,7 @@ You start an agent, switch to something else, and keep checking whether it is do
 - **No talking over each other.** When several agents finish at the same time, they speak one after another.
 - **Fast repeats.** Everything spoken is cached, so a phrase you hear often plays at once.
 - **Fallbacks.** If the internet is down, a local voice speaks. If that fails, the Windows voice speaks.
-- **Simple to wire up.** The MCP server is built in with no extra dependencies, and `finished register` adds it to every agent installed on your computer.
+- **Works automatically.** The installer connects every agent installed on your computer with three things: the MCP tool, an end-of-turn hook (Claude Code, Codex), and one rule in its instructions. You hear about every finished task, even when an agent forgets to call the tool, and never twice. `finished unregister` undoes it all.
 
 ## Install
 
@@ -37,17 +37,19 @@ You need Windows 10 or 11, [Python](https://www.python.org/) 3.10–3.13 or [uv]
 ```powershell
 git clone https://github.com/spixyy7/agent-finished
 cd agent-finished
-powershell -ExecutionPolicy Bypass -File install.ps1 -Register
+powershell -ExecutionPolicy Bypass -File install.ps1
 ```
+
+> **Connecting your agents is required.** `finished` only works when your agents call it, so the installer always connects them (see [Connect your agents](#connect-your-agents)). It first says what it will change and asks once. If you answer *no*, nothing is installed. Every changed file is backed up first, and `finished unregister` undoes it all. Pass `-Yes` to agree up front, for example in scripts.
 
 The installer:
 
 1. creates `.venv` and installs the Python packages
 2. downloads the Kokoro model (about 350 MB, once) into `models/`
 3. puts a `finished` command in `%USERPROFILE%\.local\bin` for PowerShell, cmd and Git Bash, and adds that folder to your PATH
-4. with `-Register`, adds the MCP tool to the agents it finds (see below)
+4. connects every agent installed on your computer: the MCP tool, automatic notifications, and one rule
 
-When it is done, you hear *"finished is installed"*. Then run `finished setup` to choose your voice.
+When it is done, you hear *"finished is installed"*. Restart your agents, then run `finished setup` to choose your voice.
 
 ## Quick start
 
@@ -60,25 +62,44 @@ finished voices                      # list voices
 
 ## Connect your agents
 
-### Automatic
+The installer does this for you. To run it again or connect one more agent:
 
 ```powershell
 finished register            # every agent found on this computer
 finished register codex      # just one
+finished unregister          # remove everything it added (all agents, or name one)
 ```
 
-| Agent | Where it is added |
-|---|---|
-| Claude Code | `claude mcp add -s user finished ...` |
-| Codex CLI | `~/.codex/config.toml` |
-| Grok CLI | `~/.grok/config.toml` |
-| Gemini CLI / Antigravity | `~/.gemini/settings.json` |
-| Qwen Code | `~/.qwen/settings.json` |
-| Cursor | `~/.cursor/mcp.json` |
-| Windsurf | `~/.codeium/windsurf/mcp_config.json` |
-| OpenCode | `~/.config/opencode/opencode.json` |
+For each agent it adds up to three things:
 
-Each config file is backed up next to itself (`*.bak-<time>`) before it is changed. Restart the agents afterwards so they load the tool.
+- **Tool:** the MCP tool `notify_finished`, so the agent can say what it finished in its own words.
+- **Auto:** a hook that fires when the agent's turn ends, so you hear something even when the agent forgets to call the tool.
+- **Rule:** one short rule in the agent's global instructions, telling it to call the tool with a short summary when it is done.
+
+| Agent | Tool | Auto | Rule |
+|---|---|---|---|
+| Claude Code | `claude mcp add -s user` | Stop hook in `~/.claude/settings.json` | `~/.claude/CLAUDE.md` |
+| Codex CLI | `~/.codex/config.toml` | `notify` in `~/.codex/config.toml` | `~/.codex/AGENTS.md` |
+| Gemini CLI / Antigravity | `~/.gemini/settings.json` | | `~/.gemini/GEMINI.md` |
+| Qwen Code | `~/.qwen/settings.json` | | `~/.qwen/QWEN.md` |
+| OpenCode | `~/.config/opencode/opencode.json` | | `~/.config/opencode/AGENTS.md` |
+| Windsurf | `~/.codeium/windsurf/mcp_config.json` | | `~/.codeium/windsurf/memories/global_rules.md` |
+| Cursor | `~/.cursor/mcp.json` | | |
+| Grok CLI | `~/.grok/config.toml` | | |
+
+- Only agents installed on your computer are touched, and running `register` twice adds nothing twice.
+- Each file is backed up next to itself (`*.bak-<time>`) before it is changed.
+- `unregister` puts text files back byte for byte. JSON files keep the same content but get standard indenting.
+- If Codex already has a `notify` program (Codex's own computer-use helper, for example), it keeps working: `finished` runs it with the same data, and `unregister` restores the exact line that was there.
+- Restart the agents afterwards so they load the changes.
+
+### Automatic notifications
+
+When a turn ends, the hook reads the agent's last reply and speaks its **first sentence** as the message, for example *"Fixed the login bug and all 42 tests pass."*. If the agent already called `notify_finished` during that turn, the hook stays quiet, so you never hear the same thing twice. The hook returns in about 0.1 s and never blocks or changes the agent.
+
+```powershell
+finished hook claude --dry < stop-input.json      # what it would say, without speaking
+```
 
 ### By hand
 
@@ -126,10 +147,14 @@ finished -a Aider -l en "Refactor done, 42 tests green"
 | `language` | ISO 639-1 code of the message, such as `en`, `sr` or `de`. Optional, but it makes the voice choice exact. |
 | `agent` | Shown in the notification title, such as `Claude: Finished`. |
 
-The tool description already tells agents to call it once, when the whole task is finished or when they need you. If you want every task to end with it, add this line to your `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`:
+The tool description and the rule tell agents to call it once, when the whole task is finished or when they need you. This is the rule `register` adds, between `<!-- finished:start -->` and `<!-- finished:end -->` markers so it can be removed cleanly:
 
 ```
-When you finish a task, call notify_finished with a very short summary (or run: finished "<summary>").
+## Spoken notification (finished)
+When you finish a task the user gave you, or you are blocked and need the user, call the
+`notify_finished` tool once with a very short summary (max 12 words, plain words, no code or
+paths) and `language` set to the summary's ISO 639-1 code. If the tool is not available, run:
+finished -a <your name> -l <code> "<summary>"
 ```
 
 ## Voices
@@ -204,13 +229,14 @@ CLI options for a single call: `-a AGENT`, `-l CODE`, `-v VOICE`, `-p N|"phrase"
 ## How it works
 
 ```
-agent ──► finished "msg"  ─┐
-agent ──► notify_finished ─┴─► background worker ─┬─► notification (WinRT toast via Windows PowerShell)
-                                                  └─► language → voice → speech ─► cache ─► speaker (one at a time)
-                                                              Kokoro (local) · Edge neural (online) · SAPI (Windows)
+agent ──► notify_finished (MCP) ──┐
+agent ──► finished "msg"  (shell) ┼─► background worker ─┬─► notification (WinRT toast via Windows PowerShell)
+turn ends ─► hook (Claude, Codex) ┘                      └─► language → voice → speech ─► cache ─► speaker
+             (skipped if the agent already called the tool)        Kokoro (local) · Edge (online) · SAPI (Windows)
 ```
 
-- `finished.py` contains everything: the CLI, voices, language detection, speech and the MCP server.
+- `finished.py` contains the CLI, voices, language detection, speech and the MCP server.
+- `agents.py` contains `register` / `unregister` and the end-of-turn hooks.
 - `toast.ps1` shows the notification. It registers its own app name, **Agents**, so you can mute it in Windows settings.
 - `languages.json` lists the languages and online voices. Rebuild it with `python tools/build_languages.py`.
 - `cache/` holds the spoken WAV files (the newest 500) and `finished.log`.
@@ -230,12 +256,21 @@ agent ──► notify_finished ─┴─► background worker ─┬─► noti
 | The first message takes about 3 s | That is the model loading. Phrases are cached, and later messages are faster. |
 | A message is read in the wrong language | Narrow it down with `finished set detect en,xx`, or have the agent pass `language`. |
 | The agent does not see the tool | Run `finished register` again and restart the agent. |
+| You hear the reply's first line but want the agent's own summary | The rule asks agents to call the tool. Check that it is in the agent's instructions (`finished register`). |
 | Start over | Delete `config.json` and `cache/`. |
+
+## Uninstall
+
+```powershell
+finished unregister          # take finished out of every agent (backups are kept)
+```
+
+Then delete the folder, plus `finished.cmd` and `finished` from `%USERPROFILE%\.local\bin`.
 
 ## Development
 
 ```powershell
-.venv\Scripts\python.exe -m unittest discover tests     # detection, voices, text, MCP
+.venv\Scripts\python.exe -m unittest discover tests     # detection, voices, text, MCP, register round trip, hooks
 .venv\Scripts\python.exe tools\build_languages.py        # refresh the language and voice list
 ```
 

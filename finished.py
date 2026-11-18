@@ -9,13 +9,12 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 import time
 import unicodedata
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 HOME = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HOME, "cache")
 MODEL = os.path.join(HOME, "models", "kokoro-v1.0.onnx")
@@ -652,6 +651,8 @@ def mcp():
                    "language": str(args.get("language") or "").strip().lower()[:3]}
             try:
                 spawn(job)
+                import agents
+                agents.mark_mcp_call(job["agent"])  # so the end-of-turn hook does not repeat it
                 res = {"content": [{"type": "text", "text": "The user was notified: " + (job["message"] or "finished")}], "isError": False}
             except Exception as e:
                 res = {"content": [{"type": "text", "text": f"Could not notify: {e}"}], "isError": True}
@@ -659,88 +660,6 @@ def mcp():
             send({"jsonrpc": "2.0", "id": rid, "error": {"code": -32601, "message": f"method not found: {method}"}})
             continue
         send({"jsonrpc": "2.0", "id": rid, "result": res})
-
-
-# ---------------------------------------------------------------- register in agents
-
-def register(targets):
-    """Add the MCP server to the agents found on this computer (configs are backed up)."""
-    home = os.path.expanduser("~")
-    script = os.path.abspath(__file__)
-    stamp = time.strftime(".bak-%Y%m%d%H%M%S")
-    want = set(targets) if targets and "all" not in targets else None
-    done = []
-
-    def wanted(name):
-        return want is None or name in want
-
-    if wanted("claude"):
-        exe = shutil.which("claude")
-        if not exe:
-            done.append(("claude", "not installed"))
-        elif subprocess.run([exe, "mcp", "get", "finished"], capture_output=True).returncode == 0:
-            done.append(("claude", "already there"))
-        else:
-            r = subprocess.run([exe, "mcp", "add", "-s", "user", "finished", "--", PY, script, "mcp"],
-                               capture_output=True, text=True)
-            done.append(("claude", "added" if r.returncode == 0 else "failed: " + (r.stderr or r.stdout).strip()[:120]))
-
-    block = f"\n[mcp_servers.finished]\ncommand = '{PY}'\nargs = ['{script}', \"mcp\"]\nstartup_timeout_sec = 15\n"
-    for name, rel in (("codex", ".codex/config.toml"), ("grok", ".grok/config.toml")):
-        if not wanted(name):
-            continue
-        path = os.path.join(home, rel)
-        if not os.path.isdir(os.path.dirname(path)):
-            done.append((name, "not installed"))
-            continue
-        text = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
-        if re.search(r"^\[mcp_servers\.finished\]", text, re.M):
-            done.append((name, "already there"))
-            continue
-        if text:
-            shutil.copy2(path, path + stamp)
-        with open(path, "a", encoding="utf-8") as f:
-            f.write(block)
-        done.append((name, "added"))
-
-    entry = {"command": PY, "args": [script, "mcp"]}
-    for name, rel, kind in (("gemini", ".gemini/settings.json", "mcpServers"),
-                            ("qwen", ".qwen/settings.json", "mcpServers"),
-                            ("cursor", ".cursor/mcp.json", "mcpServers"),
-                            ("windsurf", ".codeium/windsurf/mcp_config.json", "mcpServers"),
-                            ("opencode", ".config/opencode/opencode.json", "opencode")):
-        if not wanted(name):
-            continue
-        path = os.path.join(home, rel)
-        if not os.path.isdir(os.path.dirname(path)):
-            done.append((name, "not installed"))
-            continue
-        try:
-            data = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
-        except ValueError:
-            done.append((name, f"skipped: {rel} is not plain JSON, add it by hand"))
-            continue
-        if kind == "opencode":
-            mcp_cfg = data.setdefault("mcp", {})
-            servers = mcp_cfg["servers"] if isinstance(mcp_cfg.get("servers"), dict) else mcp_cfg
-            item = {"type": "local", "command": [PY, script, "mcp"], "enabled": True}
-        else:
-            servers = data.setdefault(kind, {})
-            item = entry
-        if "finished" in servers:
-            done.append((name, "already there"))
-            continue
-        servers["finished"] = item
-        if os.path.exists(path):
-            shutil.copy2(path, path + stamp)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-            f.write("\n")
-        done.append((name, "added"))
-
-    for name, state in done:
-        print(f"  {name:<9} {state}")
-    print("Restart the agents to load the tool. Any agent with a shell can also run: finished \"message\"")
 
 
 # ---------------------------------------------------------------- CLI
@@ -772,7 +691,11 @@ HELP = """finished - tell the user an agent is done (notification + voice)
   finished setup                       menu: try and pick voice, languages, phrase, mode
   finished config                      current settings
   finished register [all|claude|codex|grok|gemini|qwen|cursor|windsurf|opencode]
-                                       add the MCP tool to installed agents (backs up configs)
+                                       connect installed agents: MCP tool, automatic
+                                       notifications, one rule in their instructions
+                                       (every changed file is backed up first)
+  finished unregister [all|AGENT]      remove all of that again
+  finished hook claude|codex|NAME      what agents run when a turn ends (--dry = print only)
   finished mcp                         MCP server (tool notify_finished)
 """
 
@@ -1036,12 +959,16 @@ def main(argv):
         "preview": lambda: cmd_preview(rest, cfg),
         "config": lambda: print(json.dumps(cfg, indent=2, ensure_ascii=False)),
         "setup": lambda: cmd_setup(cfg),
-        "register": lambda: register(rest),
         "--version": lambda: print(VERSION),
     }
     if cmd in simple:
         simple[cmd]()
         return 0
+    if cmd in ("register", "unregister", "hook"):
+        import agents
+        if cmd == "hook":
+            return agents.hook(rest)
+        return agents.connect(rest, remove=cmd == "unregister")
     if cmd == "detect":
         return cmd_detect(rest, cfg)
     if cmd == "set":
